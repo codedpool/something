@@ -58,7 +58,7 @@ export default function Hero() {
             <Earth className="w-full h-full rounded-3xl" />
           </div>
 
-          <aside className="absolute right-0 top-8 translate-x-6 w-[320px] bg-white/6 backdrop-blur-md border border-white/12 rounded-2xl p-6 shadow-2xl">
+          <aside className="absolute right-0 bottom-0 translate-x-6 w-[320px] bg-white/6 backdrop-blur-md border border-white/12 rounded-2xl p-6 shadow-2xl">
             <h3 className="text-2xl font-bold mb-2">Get Started</h3>
             <p className="text-sm text-gray-200 mb-6">Begin by selecting your preferred process style to get started.</p>
 
