@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Earth from "@/components/uilayouts/globe";
 
 export default function Hero() {
   return (
@@ -53,8 +54,8 @@ export default function Hero() {
 
         {/* right column - globe + card */}
         <div className="md:col-span-5 relative flex justify-end items-start">
-          <div className="w-[420px] h-[420px] rounded-3xl bg-[radial-gradient(ellipse_at_bottom_right,_var(--tw-gradient-stops))] from-transparent to-transparent relative">
-            <Image src="/file.svg" alt="globe" width={420} height={420} className="object-cover rounded-3xl" />
+          <div className="w-[420px] h-[420px] rounded-3xl bg-[radial-gradient(ellipse_at_bottom_right,_var(--tw-gradient-stops))] from-transparent to-transparent relative overflow-hidden">
+            <Earth className="w-full h-full rounded-3xl" />
           </div>
 
           <aside className="absolute right-0 top-12 w-[320px] bg-white/6 backdrop-blur-md border border-white/12 rounded-2xl p-6 shadow-2xl">
