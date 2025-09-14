@@ -56,7 +56,7 @@ const Earth = ({
   return (
     <div
       className={cn(
-        "flex items-center justify-center z-[10] w-full max-w-[350px] mx-auto",
+        "flex items-center justify-center z-[10] w-full max-w-[520px] mx-auto",
         className,
       )}>
       <canvas

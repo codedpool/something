@@ -54,11 +54,11 @@ export default function Hero() {
 
         {/* right column - globe + card */}
         <div className="md:col-span-5 relative flex justify-end items-start">
-          <div className="w-[420px] h-[420px] rounded-3xl bg-[radial-gradient(ellipse_at_bottom_right,_var(--tw-gradient-stops))] from-transparent to-transparent relative overflow-hidden">
+          <div className="w-[520px] h-[520px] rounded-3xl bg-[radial-gradient(ellipse_at_bottom_right,_var(--tw-gradient-stops))] from-transparent to-transparent relative overflow-hidden">
             <Earth className="w-full h-full rounded-3xl" />
           </div>
 
-          <aside className="absolute right-0 top-12 w-[320px] bg-white/6 backdrop-blur-md border border-white/12 rounded-2xl p-6 shadow-2xl">
+          <aside className="absolute right-0 top-8 translate-x-6 w-[320px] bg-white/6 backdrop-blur-md border border-white/12 rounded-2xl p-6 shadow-2xl">
             <h3 className="text-2xl font-bold mb-2">Get Started</h3>
             <p className="text-sm text-gray-200 mb-6">Begin by selecting your preferred process style to get started.</p>
 
