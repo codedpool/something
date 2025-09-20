@@ -1,0 +1,8 @@
+/* frontend/src/components/CryptoDashboard/Footer/Footer.css */
+.footer {
+    text-align: center;
+    margin: auto;
+    max-width: 85%;
+    padding: 15px 0px;
+    font-size: 13px;
+  }

@@ -1,12 +1,15 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
+import { SignInButton, SignedIn, SignedOut, SignOutButton, useUser } from "@clerk/nextjs"; // Updated imports
 import Earth from "@/components/uilayouts/globe";
 
 export default function Hero() {
+  const { user } = useUser(); // Get user data from Clerk
+
   return (
     <section className="relative w-full min-h-[760px] bg-gradient-to-b from-[#050511] via-[#0d1020] to-[#0b0b12] overflow-hidden text-white">
-
       {/* Top navbar */}
       <header className="absolute left-0 right-0 top-6 z-30">
         <div className="max-w-7xl mx-auto px-6">
@@ -19,11 +22,30 @@ export default function Hero() {
               <a className="hover:underline hover:text-white transition-colors" href="#">Why Choose Us</a>
               <a className="hover:underline hover:text-white transition-colors" href="#">Whitepaper</a>
               <a className="hover:underline hover:text-white transition-colors" href="#">Get Started</a>
+              <Link href="/crypto-dashboard" className="hover:underline hover:text-white transition-colors">Crypto</Link>
             </nav>
 
             <div className="ml-auto hidden md:flex items-center gap-3">
-              <button className="text-sm text-white/90 bg-white/6 hover:bg-white/10 px-4 py-2 rounded-full border border-white/6">Sign in</button>
-              <button className="text-sm font-semibold bg-gradient-to-r from-[#9b5cff] to-[#f08bd6] text-white px-4 py-2 rounded-full shadow">Connect</button>
+              <SignedOut>
+                <SignInButton mode="modal">
+                  <button className="text-sm text-white/90 bg-white/6 hover:bg-white/10 px-4 py-2 rounded-full border border-white/6 transition-colors">
+                    Sign in
+                  </button>
+                </SignInButton>
+              </SignedOut>
+              <SignedIn>
+                <div className="text-sm text-white/90 px-4 py-2">
+                  {user?.firstName || "User"} ({user?.id})
+                </div>
+                <SignOutButton>
+                  <button className="text-sm text-white/90 bg-red-500/20 hover:bg-red-500/30 px-4 py-2 rounded-full border border-red-500/30 transition-colors">
+                    Sign out
+                  </button>
+                </SignOutButton>
+              </SignedIn>
+              <button className="text-sm font-semibold bg-gradient-to-r from-[#9b5cff] to-[#f08bd6] text-white px-4 py-2 rounded-full shadow">
+                Connect
+              </button>
             </div>
           </div>
         </div>

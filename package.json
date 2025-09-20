@@ -9,8 +9,10 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@clerk/nextjs": "^6.32.0",
     "clsx": "2.1.1",
     "cobe": "^0.6.4",
+    "groq-sdk": "^0.32.0",
     "next": "15.5.3",
     "react": "19.1.0",
     "react-dom": "19.1.0",
