@@ -129,23 +129,47 @@ import {
 
     useEffect(() => {
       setLoading(true);
-      Promise.all([
-        fetch(`/api/stock/profile/${symbol}`).then(r => r.json()),
-        fetch(`/api/stock/history/${symbol}`).then(r => r.json()),
-        fetch(`/api/stock/performance-heatmap/${symbol}`).then(r => r.json()).catch(() => []),
-        fetch(`/api/stock/risk-volatility/${symbol}`).then(r => r.json()).catch(() => ({})),
-        fetch(`/api/stock/monte-carlo-prediction/${symbol}`).then(r => r.json()).catch(() => ({})),
-      ]).then(([profile, navs, heat, risk, mc]) => {
-        setProfile(profile);
-        setHistory(navs || []);
-        setHeatmap(heat || []);
-        setRiskVolatility(risk || {});
-        setMonteCarlo(mc || {});
-        setLoading(false);
-      }).catch(err => {
-        console.error(err);
-        setLoading(false);
-      });
+
+      (async () => {
+        try {
+          const endpoints = {
+            profile: `/api/stock/profile/${symbol}`,
+            history: `/api/stock/history/${symbol}`,
+            heatmap: `/api/stock/performance-heatmap/${symbol}`,
+            risk: `/api/stock/risk-volatility/${symbol}`,
+            montecarlo: `/api/stock/monte-carlo-prediction/${symbol}`,
+          };
+
+          const results = {};
+
+          for (const [key, url] of Object.entries(endpoints)) {
+            try {
+              const res = await fetch(url);
+              const text = await res.text();
+              // Try to parse JSON, fallback to null and log raw body for debugging
+              try {
+                results[key] = res.ok ? JSON.parse(text) : null;
+              } catch (parseErr) {
+                console.error(`Non-JSON response from ${url}:`, text.slice(0, 1000));
+                results[key] = null;
+              }
+            } catch (fetchErr) {
+              console.error(`Network error fetching ${url}:`, fetchErr);
+              results[key] = null;
+            }
+          }
+
+          setProfile(results.profile || null);
+          setHistory(results.history || []);
+          setHeatmap(results.heatmap || []);
+          setRiskVolatility(results.risk || {});
+          setMonteCarlo(results.montecarlo || {});
+        } catch (err) {
+          console.error(err);
+        } finally {
+          setLoading(false);
+        }
+      })();
     }, [symbol]);
 
     // Debounced search for stock 1
