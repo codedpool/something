@@ -3,6 +3,13 @@
 import Image from "next/image";
 import Link from "next/link";
 import Earth from "@/components/uilayouts/globe";
+import {
+  SignedIn,
+  SignedOut,
+  SignInButton,
+  SignUpButton,
+  UserButton,
+} from "@clerk/nextjs";
 
 export default function Hero() {
   return (
@@ -24,9 +31,31 @@ export default function Hero() {
               <Link href="/MFDashboard" className="hover:underline hover:text-white transition-colors">MFDashboard</Link>
             </nav>
 
+            {/* Clerk Auth Buttons - Styled to Match Design */}
             <div className="ml-auto hidden md:flex items-center gap-3">
-              <button className="text-sm text-white/90 bg-white/6 hover:bg-white/10 px-4 py-2 rounded-full border border-white/6">Sign in</button>
-              <button className="text-sm font-semibold bg-gradient-to-r from-[#9b5cff] to-[#f08bd6] text-white px-4 py-2 rounded-full shadow">Connect</button>
+              <SignedIn>
+                <UserButton
+                  afterSignOutUrl="/"
+                  appearance={{
+                    elements: {
+                      avatarBox: "w-9 h-9",
+                    },
+                  }}
+                />
+              </SignedIn>
+
+              <SignedOut>
+                <SignInButton mode="modal">
+                  <button className="text-sm text-white/90 bg-white/6 hover:bg-white/10 px-4 py-2 rounded-full border border-white/6 transition-colors">
+                    Sign in
+                  </button>
+                </SignInButton>
+                <SignUpButton mode="modal">
+                  <button className="text-sm font-semibold bg-gradient-to-r from-[#9b5cff] to-[#f08bd6] text-white px-4 py-2 rounded-full shadow hover:scale-[1.01] transition-transform">
+                    Sign up
+                  </button>
+                </SignUpButton>
+              </SignedOut>
             </div>
           </div>
         </div>
