@@ -118,6 +118,16 @@ export default function MFDetailsPage() {
   const [amount, setAmount] = useState(10000);
   const [years, setYears] = useState(1);
   const [selectedPeriod, setSelectedPeriod] = useState("1M");
+  
+  // Compare funds state
+  const [fund1Query, setFund1Query] = useState("");
+  const [fund2Query, setFund2Query] = useState("");
+  const [fund1Suggestions, setFund1Suggestions] = useState([]);
+  const [fund2Suggestions, setFund2Suggestions] = useState([]);
+  const [showFund1Dropdown, setShowFund1Dropdown] = useState(false);
+  const [showFund2Dropdown, setShowFund2Dropdown] = useState(false);
+  const [selectedFund1, setSelectedFund1] = useState(null);
+  const [selectedFund2, setSelectedFund2] = useState(null);
 
   useEffect(() => {
     setLoading(true);
@@ -139,6 +149,65 @@ export default function MFDetailsPage() {
       setLoading(false);
     });
   }, [schemeCode]);
+
+  // Debounced search for fund 1
+  useEffect(() => {
+    if (fund1Query.length < 3) {
+      setFund1Suggestions([]);
+      setShowFund1Dropdown(false);
+      return;
+    }
+
+    const timeoutId = setTimeout(async () => {
+      try {
+        const response = await fetch(`/api/mutual/schemes?search=${encodeURIComponent(fund1Query)}`);
+        const data = await response.json();
+        const suggestions = Object.entries(data).map(([code, name]) => ({ code, name })).slice(0, 10);
+        setFund1Suggestions(suggestions);
+        setShowFund1Dropdown(suggestions.length > 0);
+      } catch (error) {
+        console.error('Error fetching fund suggestions:', error);
+      }
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
+  }, [fund1Query]);
+
+  // Debounced search for fund 2
+  useEffect(() => {
+    if (fund2Query.length < 3) {
+      setFund2Suggestions([]);
+      setShowFund2Dropdown(false);
+      return;
+    }
+
+    const timeoutId = setTimeout(async () => {
+      try {
+        const response = await fetch(`/api/mutual/schemes?search=${encodeURIComponent(fund2Query)}`);
+        const data = await response.json();
+        const suggestions = Object.entries(data).map(([code, name]) => ({ code, name })).slice(0, 10);
+        setFund2Suggestions(suggestions);
+        setShowFund2Dropdown(suggestions.length > 0);
+      } catch (error) {
+        console.error('Error fetching fund suggestions:', error);
+      }
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
+  }, [fund2Query]);
+
+  // Handle fund selection
+  const handleFund1Select = (fund) => {
+    setSelectedFund1(fund);
+    setFund1Query(fund.name);
+    setShowFund1Dropdown(false);
+  };
+
+  const handleFund2Select = (fund) => {
+    setSelectedFund2(fund);
+    setFund2Query(fund.name);
+    setShowFund2Dropdown(false);
+  };
 
   // Calculate future returns
   const estReturn = amount * Math.pow(1 + (riskVolatility.annualized_return || 0), Number(years || 1));
@@ -461,25 +530,106 @@ export default function MFDetailsPage() {
             {/* Compare Funds Section - Full Width */}
             <div className="mt-8 bg-[#181f31] rounded-xl p-8 shadow-lg">
               <h3 className="text-2xl font-bold mb-6 text-white">Compare Funds</h3>
-              <div className="grid md:grid-cols-2 gap-4 mb-6">
-                <div>
+              <div className="grid md:grid-cols-2 gap-6 mb-6">
+                {/* Fund 1 Search */}
+                <div className="relative">
+                  <label className="block text-base mb-2 text-gray-300 font-medium">First Fund</label>
                   <input
                     type="text"
-                    placeholder="Search for first fund..."
+                    value={fund1Query}
+                    onChange={(e) => {
+                      setFund1Query(e.target.value);
+                      setSelectedFund1(null);
+                    }}
+                    onFocus={() => fund1Suggestions.length > 0 && setShowFund1Dropdown(true)}
+                    placeholder="Type to search (e.g., SBI, HDFC, ICICI)..."
                     className="w-full bg-[#232b44] text-white p-4 rounded-lg text-base focus:outline-none focus:ring-2 focus:ring-purple-500 placeholder-gray-400"
                   />
+                  {showFund1Dropdown && fund1Suggestions.length > 0 && (
+                    <div className="absolute z-10 w-full mt-2 bg-[#232b44] border border-gray-600 rounded-lg shadow-xl max-h-80 overflow-y-auto">
+                      {fund1Suggestions.map((fund) => (
+                        <div
+                          key={fund.code}
+                          onClick={() => handleFund1Select(fund)}
+                          className="p-4 hover:bg-purple-600 cursor-pointer transition-colors border-b border-gray-700 last:border-b-0"
+                        >
+                          <div className="text-white font-medium text-sm mb-1">{fund.name}</div>
+                          <div className="text-gray-400 text-xs">Code: {fund.code}</div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {selectedFund1 && (
+                    <div className="mt-2 p-3 bg-green-900/30 border border-green-600 rounded-lg">
+                      <div className="text-green-400 text-sm font-medium">✓ Selected: {selectedFund1.name}</div>
+                      <div className="text-gray-400 text-xs mt-1">Code: {selectedFund1.code}</div>
+                    </div>
+                  )}
+                  <p className="text-xs text-gray-400 mt-2 italic">Type at least 3 characters to search</p>
                 </div>
-                <div>
+
+                {/* Fund 2 Search */}
+                <div className="relative">
+                  <label className="block text-base mb-2 text-gray-300 font-medium">Second Fund</label>
                   <input
                     type="text"
-                    placeholder="Search for second fund..."
+                    value={fund2Query}
+                    onChange={(e) => {
+                      setFund2Query(e.target.value);
+                      setSelectedFund2(null);
+                    }}
+                    onFocus={() => fund2Suggestions.length > 0 && setShowFund2Dropdown(true)}
+                    placeholder="Type to search (e.g., SBI, HDFC, ICICI)..."
                     className="w-full bg-[#232b44] text-white p-4 rounded-lg text-base focus:outline-none focus:ring-2 focus:ring-purple-500 placeholder-gray-400"
                   />
+                  {showFund2Dropdown && fund2Suggestions.length > 0 && (
+                    <div className="absolute z-10 w-full mt-2 bg-[#232b44] border border-gray-600 rounded-lg shadow-xl max-h-80 overflow-y-auto">
+                      {fund2Suggestions.map((fund) => (
+                        <div
+                          key={fund.code}
+                          onClick={() => handleFund2Select(fund)}
+                          className="p-4 hover:bg-purple-600 cursor-pointer transition-colors border-b border-gray-700 last:border-b-0"
+                        >
+                          <div className="text-white font-medium text-sm mb-1">{fund.name}</div>
+                          <div className="text-gray-400 text-xs">Code: {fund.code}</div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {selectedFund2 && (
+                    <div className="mt-2 p-3 bg-green-900/30 border border-green-600 rounded-lg">
+                      <div className="text-green-400 text-sm font-medium">✓ Selected: {selectedFund2.name}</div>
+                      <div className="text-gray-400 text-xs mt-1">Code: {selectedFund2.code}</div>
+                    </div>
+                  )}
+                  <p className="text-xs text-gray-400 mt-2 italic">Type at least 3 characters to search</p>
                 </div>
               </div>
-              <p className="text-center text-gray-400 text-base">
-                Select two funds to compare their performance metrics
-              </p>
+
+              {/* Compare Button */}
+              {selectedFund1 && selectedFund2 && (
+                <div className="text-center">
+                  <button 
+                    onClick={() => {
+                      // Navigate to comparison page or show comparison
+                      window.open(`/MFDashboard/${selectedFund1.code}`, '_blank');
+                      window.open(`/MFDashboard/${selectedFund2.code}`, '_blank');
+                    }}
+                    className="bg-gradient-to-r from-purple-600 to-cyan-500 hover:from-purple-700 hover:to-cyan-600 text-white px-8 py-4 rounded-lg text-base font-bold transition-all transform hover:scale-105"
+                  >
+                    Compare These Funds →
+                  </button>
+                  <p className="text-gray-400 text-sm mt-3">
+                    Click to open both fund dashboards side by side
+                  </p>
+                </div>
+              )}
+
+              {!selectedFund1 && !selectedFund2 && (
+                <p className="text-center text-gray-400 text-base">
+                  Search and select two funds to compare their performance metrics
+                </p>
+              )}
             </div>
           </>
         )}
