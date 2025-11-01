@@ -19,6 +19,7 @@ import {
 } from "recharts";
 import AIDostModal from "../../components/AIDostModal";
 import AIReportModal from "../../components/AIReportModal";
+import Chatbot from "../../components/Chatbot";
 
 // Utility functions
 function formatPct(val) {
@@ -752,6 +753,14 @@ export default function MFDetailsPage() {
           navHistory,
           riskVolatility,
           monteCarlo,
+        }}
+      />
+
+      {/* Chatbot */}
+      <Chatbot
+        selectedFund={{
+          name: meta?.scheme_name || meta?.schemeName || schemeCode,
+          code: schemeCode
         }}
       />
     </section>
