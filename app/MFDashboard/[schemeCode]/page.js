@@ -16,6 +16,7 @@ import {
   Bar,
   Cell,
 } from "recharts";
+import AIDostModal from "../../components/AIDostModal";
 
 // Utility functions
 function formatPct(val) {
@@ -128,6 +129,9 @@ export default function MFDetailsPage() {
   const [showFund2Dropdown, setShowFund2Dropdown] = useState(false);
   const [selectedFund1, setSelectedFund1] = useState(null);
   const [selectedFund2, setSelectedFund2] = useState(null);
+  
+  // AI Dost Modal state
+  const [showAIDost, setShowAIDost] = useState(false);
 
   useEffect(() => {
     setLoading(true);
@@ -232,9 +236,28 @@ export default function MFDetailsPage() {
             {/* Fund Name Display */}
             <div className="mb-6">
               <div className="bg-[#181f31] rounded-xl p-4 border border-gray-700">
-                <h2 className="text-xl font-bold text-white text-center">
+                <h2 className="text-xl font-bold text-white text-center mb-4">
                   {meta?.scheme_name || meta?.schemeName || `Scheme Code: ${schemeCode}`}
                 </h2>
+                
+                {/* AI Buttons */}
+                <div className="flex gap-4 justify-center">
+                  <button 
+                    onClick={() => setShowAIDost(true)}
+                    className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white px-6 py-2.5 rounded-lg font-semibold text-base transition-all transform hover:scale-105 shadow-lg flex items-center gap-2"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                    </svg>
+                    AI Dost
+                  </button>
+                  <button className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-6 py-2.5 rounded-lg font-semibold text-base transition-all transform hover:scale-105 shadow-lg flex items-center gap-2">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    AI Report
+                  </button>
+                </div>
               </div>
             </div>
             
@@ -634,6 +657,18 @@ export default function MFDetailsPage() {
           </>
         )}
       </div>
+
+      {/* AI Dost Modal */}
+      <AIDostModal
+        isOpen={showAIDost}
+        onClose={() => setShowAIDost(false)}
+        fundData={{
+          meta,
+          navHistory,
+          riskVolatility,
+          monteCarlo,
+        }}
+      />
     </section>
   );
 }
