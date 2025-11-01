@@ -39,7 +39,24 @@ async def get_schemes(search: str = ""):
 
 @router.get("/scheme-details/{scheme_code}")
 async def get_scheme_details(scheme_code: str):
-    return fetch_scheme_details(scheme_code) or {}
+    details = fetch_scheme_details(scheme_code)
+    if not details:
+        # Fallback: Try to get scheme name from full data
+        url = f"{MFAPI_BASE_URL}/mf/{scheme_code}"
+        r = requests.get(url)
+        if r.ok:
+            full_data = r.json()
+            meta = full_data.get("meta", {})
+            if meta:
+                return meta
+            # If meta is empty, return scheme name from the response
+            return {
+                "scheme_name": full_data.get("scheme_name", ""),
+                "fund_house": full_data.get("fund_house", ""),
+                "scheme_type": full_data.get("scheme_type", ""),
+                "scheme_category": full_data.get("scheme_category", "")
+            }
+    return details
 
 @router.get("/historical-nav/{scheme_code}")
 async def get_historical_nav(scheme_code: str):
@@ -71,11 +88,24 @@ async def get_performance_heatmap(scheme_code: str):
         df = pd.DataFrame(navs)
         df["date"] = pd.to_datetime(df["date"], dayfirst=True)
         df["nav"] = pd.to_numeric(df["nav"], errors="coerce")
-        df["dayChange"] = df["nav"].pct_change().fillna(0)
+        df.dropna(subset=["nav"], inplace=True)
+        
+        # Calculate monthly returns
+        df["year"] = df["date"].dt.year
         df["month"] = df["date"].dt.month
-        heatmap = df.groupby("month")["dayChange"].mean().reset_index()
-        heatmap["month"] = heatmap["month"].astype(str)
-        return heatmap.to_dict(orient="records")
+        
+        # Get first and last NAV of each month
+        monthly_data = df.groupby(["year", "month"]).agg({
+            "nav": ["first", "last"]
+        }).reset_index()
+        monthly_data.columns = ["year", "month", "first_nav", "last_nav"]
+        
+        # Calculate percentage change
+        monthly_data["value"] = ((monthly_data["last_nav"] - monthly_data["first_nav"]) / monthly_data["first_nav"]) * 100
+        monthly_data["nav"] = monthly_data["last_nav"]
+        
+        heatmap = monthly_data[["year", "month", "value", "nav"]].to_dict(orient="records")
+        return heatmap
     return []
 
 @router.get("/risk-volatility/{scheme_code}")
@@ -133,10 +163,24 @@ async def get_monte_carlo_prediction(scheme_code: str, num_simulations: int = 10
     prob_positive = float(np.mean(simulations[:, -1] > last_nav))
     percentile_5 = float(np.percentile(simulations[:, -1], 5))
     percentile_95 = float(np.percentile(simulations[:, -1], 95))
+    
+    # Prepare simulation paths for visualization (sample 4 simulations)
+    simulation_paths = []
+    for i in range(min(4, num_simulations)):
+        simulation_paths.append({
+            "name": f"Simulation {i + 1}",
+            "data": [{"day": day, "value": float(simulations[i, day])} for day in range(0, days, 5)]  # Every 5 days
+        })
+    
+    # Historical + Predicted path
+    historical_predicted = [{"day": day, "value": float(np.mean(simulations[:, day]))} for day in range(0, days, 5)]
+    
     return {
         "expected_nav": expected_nav,
         "probability_positive_return": prob_positive * 100,
         "lower_bound_5th_percentile": percentile_5,
         "upper_bound_95th_percentile": percentile_95,
         "last_nav": last_nav,
+        "simulation_paths": simulation_paths,
+        "historical_predicted": historical_predicted
     }

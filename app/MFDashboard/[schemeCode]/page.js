@@ -1,24 +1,110 @@
+// 
+
 "use client";
 import React, { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import {
   LineChart,
   Line,
-  CartesianGrid,
   XAxis,
   YAxis,
   Tooltip,
   ResponsiveContainer,
-  ComposedChart,
+  CartesianGrid,
+  Legend,
+  BarChart,
   Bar,
+  Cell,
 } from "recharts";
 
-// Utility for formatting returns, currency, etc.
+// Utility functions
 function formatPct(val) {
   return isNaN(val) ? "--" : (val * 100).toFixed(2) + "%";
 }
 function formatRs(val) {
   return isNaN(val) ? "--" : "₹" + Number(val).toLocaleString("en-IN");
+}
+
+// Custom Heatmap Component using Bar Chart
+function PerformanceHeatmap({ data }) {
+  if (!data || data.length === 0) {
+    return (
+      <div className="flex items-center justify-center h-full text-gray-400 text-sm">
+        No heatmap data available
+      </div>
+    );
+  }
+
+  // Format data for bar chart - take last 12 months
+  const chartData = data.slice(-12).map(item => ({
+    month: `${item.month}/${item.year}`,
+    value: item.value,
+    displayValue: item.value.toFixed(4)
+  }));
+
+  // Get color based on performance value
+  const getColor = (value) => {
+    if (value > 0.15) return "#eab308";  // Yellow for high positive
+    if (value > 0.05) return "#84cc16";   // Light green
+    if (value > 0) return "#10b981";      // Green
+    if (value > -0.05) return "#6366f1";  // Purple/blue
+    return "#8b5cf6";                     // Dark purple for negative
+  };
+
+  return (
+    <div className="w-full h-full bg-white rounded-lg p-4">
+      <ResponsiveContainer width="100%" height="100%">
+        <BarChart data={chartData}>
+          <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+          <XAxis 
+            dataKey="month" 
+            tick={{ fill: '#6b7280', fontSize: 10 }}
+            angle={-45}
+            textAnchor="end"
+            height={60}
+          />
+          <YAxis 
+            tick={{ fill: '#6b7280', fontSize: 10 }}
+            tickFormatter={(val) => val.toFixed(4)}
+            reversed={false}
+          />
+          <Tooltip 
+            contentStyle={{ 
+              background: "#ffffff", 
+              border: "1px solid #e5e7eb", 
+              borderRadius: "6px" 
+            }}
+            formatter={(value) => [value.toFixed(4), 'Monthly Return']}
+          />
+          <Bar dataKey="value" radius={[4, 4, 0, 0]}>
+            {chartData.map((entry, index) => (
+              <Cell key={`cell-${index}`} fill={getColor(entry.value)} />
+            ))}
+          </Bar>
+        </BarChart>
+      </ResponsiveContainer>
+      
+      {/* Color Legend */}
+      <div className="flex items-center justify-end gap-4 mt-2 text-xs">
+        <div className="flex items-center gap-1">
+          <div className="w-3 h-3 bg-[#8b5cf6] rounded"></div>
+          <span className="text-gray-600">Negative</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <div className="w-3 h-3 bg-[#6366f1] rounded"></div>
+          <span className="text-gray-600">Low</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <div className="w-3 h-3 bg-[#10b981] rounded"></div>
+          <span className="text-gray-600">Medium</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <div className="w-3 h-3 bg-[#eab308] rounded"></div>
+          <span className="text-gray-600">High</span>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export default function MFDetailsPage() {
@@ -31,6 +117,7 @@ export default function MFDetailsPage() {
   const [monteCarlo, setMonteCarlo] = useState({});
   const [amount, setAmount] = useState(10000);
   const [years, setYears] = useState(1);
+  const [selectedPeriod, setSelectedPeriod] = useState("1M");
 
   useEffect(() => {
     setLoading(true);
@@ -47,16 +134,14 @@ export default function MFDetailsPage() {
       setRiskVolatility(risk);
       setMonteCarlo(mc);
       setLoading(false);
+    }).catch(error => {
+      console.error('Error:', error);
+      setLoading(false);
     });
   }, [schemeCode]);
 
-  // Calculate future returns using annualized return
-  const estReturn =
-    amount *
-    Math.pow(
-      1 + (riskVolatility.annualized_return || 0),
-      Number(years || 1)
-    );
+  // Calculate future returns
+  const estReturn = amount * Math.pow(1 + (riskVolatility.annualized_return || 0), Number(years || 1));
   const estProfit = estReturn - amount;
 
   return (
@@ -69,114 +154,150 @@ export default function MFDetailsPage() {
         ) : (
           <>
             {/* Scheme Name Heading */}
-            <div>
-              <input
-                type="text"
-                value={meta?.schemeName || ""}
-                readOnly
-                className="w-full bg-[#181f31] text-white p-3 rounded mb-2 font-semibold"
-              />
+            <div className="mb-6">
+              <h1 className="text-3xl md:text-4xl font-bold text-cyan-400 text-center">
+                Mutual Fund Dashboard
+              </h1>
             </div>
-            {/* Main Grid */}
-            <div className="grid md:grid-cols-2 gap-6">
+
+            {/* Fund Name Display */}
+            <div className="mb-6">
+              <div className="bg-[#181f31] rounded-xl p-4 border border-gray-700">
+                <h2 className="text-xl font-bold text-white text-center">
+                  {meta?.scheme_name || meta?.schemeName || `Scheme Code: ${schemeCode}`}
+                </h2>
+              </div>
+            </div>
+            
+            {/* Main Grid - 2 columns with equal heights */}
+            <div className="grid lg:grid-cols-2 gap-6 items-start">
+              {/* LEFT COLUMN */}
               <div className="flex flex-col gap-6">
                 {/* Fund Meta Card */}
-                <div className="bg-[#181f31] rounded-xl p-6 shadow mb-2">
-                  <h2 className="text-xl font-bold mb-2">{meta?.schemeName}</h2>
-                  <div className="mb-2 text-sm">
-                    <span className="font-bold">fund house:</span> {meta?.amc}
+                <div className="bg-[#181f31] rounded-xl p-6 shadow-lg h-fit">
+                  <h3 className="text-xl font-bold mb-4 text-white border-b border-gray-700 pb-2">
+                    {meta?.scheme_name || meta?.schemeName || `Fund Details`}
+                  </h3>
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center text-base">
+                      <span className="font-medium text-gray-300">fund house:</span> 
+                      <span className="text-white font-semibold">{meta?.fund_house || meta?.amc || meta?.fundHouse || 'Not Available'}</span>
+                    </div>
+                    <div className="flex justify-between items-center text-base">
+                      <span className="font-medium text-gray-300">scheme type:</span> 
+                      <span className="text-white font-semibold">{meta?.scheme_type || meta?.schemeType || 'Not Available'}</span>
+                    </div>
+                    <div className="flex justify-between items-center text-base">
+                      <span className="font-medium text-gray-300">scheme category:</span> 
+                      <span className="text-white font-semibold">{meta?.scheme_category || meta?.category || 'Not Available'}</span>
+                    </div>
+                    <div className="flex justify-between items-center text-base">
+                      <span className="font-medium text-gray-300">scheme code:</span> 
+                      <span className="text-white font-semibold">{schemeCode}</span>
+                    </div>
+                    <div className="flex justify-between items-center text-base">
+                      <span className="font-medium text-gray-300">scheme name:</span> 
+                      <span className="text-white font-semibold text-right">{meta?.scheme_name || meta?.schemeName || 'Not Available'}</span>
+                    </div>
                   </div>
-                  <div className="mb-2 text-sm">
-                    <span className="font-bold">scheme type:</span> {meta?.schemeType}
-                  </div>
-                  <div className="mb-2 text-sm">
-                    <span className="font-bold">scheme category:</span> {meta?.category}
-                  </div>
-                  <div className="mb-2 text-sm">
-                    <span className="font-bold">scheme code:</span> {schemeCode}
-                  </div>
-                  <button className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 text-sm mt-2 rounded">
+                  <button className="w-full bg-green-600 hover:bg-green-700 text-white px-6 py-3 text-base font-semibold mt-6 rounded-lg transition-colors">
                     Add to Portfolio
                   </button>
                 </div>
+
                 {/* Return Calculator Card */}
-                <div className="bg-[#181f31] rounded-xl p-6 shadow">
-                  <h3 className="font-bold mb-4">Calculate Your Returns</h3>
-                  <label className="block mb-2 text-xs">
-                    Investment Amount (₹):
-                    <input
-                      className="bg-[#232b44] ml-2 rounded p-1 w-24 text-right"
-                      type="number"
-                      min="100"
-                      value={amount}
-                      onChange={e => setAmount(Number(e.target.value))}
-                    />
-                  </label>
-                  <label className="block mb-4 text-xs">
-                    Duration (Years):
-                    <input
-                      className="bg-[#232b44] ml-2 rounded p-1 w-12 text-right"
-                      type="number"
-                      min="1"
-                      value={years}
-                      onChange={e => setYears(Number(e.target.value))}
-                    />
-                  </label>
-                  <div className="text-sm">
-                    <b>Estimated Total Value:</b> {formatRs(estReturn)}
-                    <br />
-                    <b>Estimated Profit:</b> {formatRs(estProfit)}
-                    <br />
-                    <b>Annualized Return:</b> {formatPct(riskVolatility.annualized_return)}
-                    <div className="text-xs opacity-60 mt-1">
+                <div className="bg-[#181f31] rounded-xl p-6 shadow-lg h-fit">
+                  <h3 className="text-xl font-bold mb-4 text-white border-b border-gray-700 pb-2">Calculate Your Returns</h3>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-base mb-2">
+                        <span className="text-gray-300 font-medium">Investment Amount (₹):</span>
+                      </label>
+                      <input
+                        className="w-full bg-[#232b44] text-white rounded-lg p-3 text-base focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        type="number"
+                        min="100"
+                        value={amount}
+                        onChange={e => setAmount(Number(e.target.value))}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-base mb-2">
+                        <span className="text-gray-300 font-medium">Duration (Years):</span>
+                      </label>
+                      <input
+                        className="w-full bg-[#232b44] text-white rounded-lg p-3 text-base focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        type="number"
+                        min="1"
+                        value={years}
+                        onChange={e => setYears(Number(e.target.value))}
+                      />
+                    </div>
+                  </div>
+                  <div className="mt-6 space-y-3 text-base border-t border-gray-700 pt-4">
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-300 font-medium">Estimated Total Value:</span> 
+                      <span className="font-bold text-white text-lg">{formatRs(estReturn)}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-300 font-medium">Estimated Profit:</span> 
+                      <span className="font-bold text-green-400 text-lg">{formatRs(estProfit)}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-300 font-medium">Annualized Return:</span> 
+                      <span className="font-bold text-white text-lg">{formatPct(riskVolatility.annualized_return)}</span>
+                    </div>
+                    <p className="text-sm opacity-70 mt-4 text-gray-400 italic">
                       *Based on historical annualized return, actual returns may vary.
-                    </div>
+                    </p>
                   </div>
                 </div>
+
                 {/* Risk & Volatility */}
-                <div className="bg-[#181f31] rounded-xl p-6 shadow">
-                  <h3 className="font-bold mb-3">Risk & Volatility</h3>
-                  <div>Annualized Volatility: <b>{formatPct(riskVolatility.annualized_volatility)}</b></div>
-                  <div>Annualized Return: <b>{formatPct(riskVolatility.annualized_return)}</b></div>
-                  <div>Sharpe Ratio: <b>{riskVolatility.sharpe_ratio?.toFixed(2) ?? "--"}</b></div>
-                  {/* Returns LineChart */}
-                  <div className="mt-4 bg-[#232b44] rounded h-32">
-                    {riskVolatility.returns?.length ? (
-                      <ResponsiveContainer width="99%" height={90}>
-                        <LineChart data={riskVolatility.returns.slice(-100)}>
-                          <Line type="monotone" dataKey="returns" stroke="#00e2bc" strokeWidth={1} dot={false} />
-                          <XAxis dataKey="date" hide />
-                          <YAxis tick={{fill:'#fff'}} />
-                          <Tooltip contentStyle={{ background: "#181f31", border: "none" }}/>
-                        </LineChart>
-                      </ResponsiveContainer>
-                    ) : (
-                      <span className="text-gray-400 text-xs flex items-center justify-center h-full">No data</span>
-                    )}
-                  </div>
-                </div>
-              </div>
-              <div className="flex flex-col gap-6">
-                {/* NAV History Card */}
-                <div className="bg-[#181f31] rounded-xl p-6 shadow">
-                  <div className="flex justify-between items-center mb-2">
-                    <h3 className="font-bold">Historical NAV</h3>
-                    {/* Nav periods placeholder (implement tabs as needed) */}
-                    <div className="flex gap-2">
-                      <button className="px-2 py-1 text-xs rounded bg-[#232b44]">1M</button>
-                      <button className="px-2 py-1 text-xs rounded">3M</button>
-                      <button className="px-2 py-1 text-xs rounded">6M</button>
-                      <button className="px-2 py-1 text-xs rounded">1Y</button>
+                <div className="bg-[#181f31] rounded-xl p-6 shadow-lg h-fit">
+                  <h3 className="text-xl font-bold mb-4 text-white border-b border-gray-700 pb-2">Risk & Volatility</h3>
+                  <div className="space-y-3 mb-4">
+                    <div className="flex justify-between items-center text-base">
+                      <span className="text-gray-300 font-medium">Annualized Volatility:</span> 
+                      <span className="font-bold text-white">{formatPct(riskVolatility.annualized_volatility)}</span>
+                    </div>
+                    <div className="flex justify-between items-center text-base">
+                      <span className="text-gray-300 font-medium">Annualized Return:</span> 
+                      <span className="font-bold text-white">{formatPct(riskVolatility.annualized_return)}</span>
+                    </div>
+                    <div className="flex justify-between items-center text-base">
+                      <span className="text-gray-300 font-medium">Sharpe Ratio:</span> 
+                      <span className="font-bold text-white">{riskVolatility.sharpe_ratio?.toFixed(2) ?? "--"}</span>
                     </div>
                   </div>
-                  <div className="mt-3 bg-[#232b44] rounded h-48">
-                    {navHistory.length > 0 ? (
-                      <ResponsiveContainer width="100%" height={140}>
-                        <LineChart data={navHistory.slice(-30)}>
-                          <Line type="monotone" dataKey="nav" stroke="#9b5cff" strokeWidth={2} dot={false} />
-                          <XAxis dataKey="date" hide />
-                          <YAxis domain={["auto", "auto"]} tick={{fill:'#fff'}} />
-                          <Tooltip contentStyle={{ background: "#181f31", border: "none" }}/>
+                  
+                  <div className="bg-[#232b44] rounded-lg h-64 p-2 mt-4">
+                    {riskVolatility.returns?.length ? (
+                      <ResponsiveContainer width="100%" height="100%">
+                        <LineChart data={riskVolatility.returns.slice(-100)}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                          <Line 
+                            type="monotone" 
+                            dataKey="returns" 
+                            stroke="#10b981" 
+                            strokeWidth={1.5} 
+                            dot={false} 
+                          />
+                          <XAxis 
+                            dataKey="date" 
+                            tick={{fill:'#9ca3af', fontSize: 9}} 
+                            angle={-45}
+                            textAnchor="end"
+                            height={60}
+                          />
+                          <YAxis 
+                            tick={{fill:'#9ca3af', fontSize: 10}}
+                            tickFormatter={(val) => (val * 100).toFixed(1) + '%'}
+                          />
+                          <Tooltip 
+                            contentStyle={{ background: "#1f2937", border: "1px solid #374151", borderRadius: "6px" }}
+                            formatter={(value) => [(value * 100).toFixed(4) + '%', 'Daily Return']}
+                          />
                         </LineChart>
                       </ResponsiveContainer>
                     ) : (
@@ -184,63 +305,181 @@ export default function MFDetailsPage() {
                     )}
                   </div>
                 </div>
-                {/* Performance Heatmap */}
-                <div className="bg-[#181f31] rounded-xl p-6 shadow">
-                  <h3 className="font-bold mb-2">Performance Heatmap</h3>
-                  <div className="bg-[#232b44] rounded h-32">
-                    {heatmap.length ? (
-                      <ResponsiveContainer width="99%" height={90}>
-                        <ComposedChart data={heatmap}>
-                          <XAxis dataKey="month" tick={{fill:'#fff'}} />
-                          <YAxis tickFormatter={(v)=>`${(v*100).toFixed(2)}%`} tick={{fill:'#fff'}} />
-                          <Tooltip contentStyle={{ background: "#181f31", border: "none" }}/>
-                          <Bar 
-                            dataKey="dayChange" 
-                            barSize={20} 
-                            fill="#f08bd6"
-                            shape={({ x, y, width, height, fill }) => (
-                              <rect x={x} y={y} width={width} height={height} rx={6} fill={fill}/>
-                            )}
-                          />
-                        </ComposedChart>
-                      </ResponsiveContainer>
-                    ) : (
-                      <span className="text-gray-400 text-xs flex items-center justify-center h-full">No data</span>
-                    )}
-                  </div>
-                </div>
-                {/* Monte Carlo Prediction */}
-                <div className="bg-[#181f31] rounded-xl p-6 shadow">
-                  <h3 className="font-bold mb-2">Monte Carlo Prediction (1 Year)</h3>
-                  <div className="mb-2 text-sm">
-                    <b>Expected NAV:</b> {monteCarlo.expected_nav?.toFixed(2) ?? "--"}
-                    <br />
-                    <b>Probability of Positive Return:</b> {formatPct(monteCarlo.probability_positive_return / 100)}
-                    <br />
-                    <b>Range:</b> {monteCarlo.lower_bound_5th_percentile?.toFixed(2)} - {monteCarlo.upper_bound_95th_percentile?.toFixed(2)}
+              </div>
 
+              {/* RIGHT COLUMN */}
+              <div className="flex flex-col gap-6">
+                {/* NAV History Card */}
+                <div className="bg-[#181f31] rounded-xl p-6 shadow-lg h-fit">
+                  <div className="flex justify-between items-center mb-4 border-b border-gray-700 pb-2">
+                    <h3 className="text-xl font-bold text-white">Historical NAV</h3>
+                    <div className="flex gap-2">
+                      {["1M", "3M", "6M", "1Y"].map((period) => (
+                        <button
+                          key={period}
+                          onClick={() => setSelectedPeriod(period)}
+                          className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
+                            selectedPeriod === period 
+                              ? "bg-purple-600 text-white" 
+                              : "bg-[#232b44] text-gray-300 hover:bg-purple-500 hover:text-white"
+                          }`}
+                        >
+                          {period}
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                  <div className="bg-[#232b44] rounded h-32">
-                    {monteCarlo.expected_nav ? (
-                      <ResponsiveContainer width="99%" height={90}>
-                        <LineChart data={[
-                          { label: "Last NAV", value: monteCarlo.last_nav },
-                          { label: "Expected", value: monteCarlo.expected_nav },
-                          { label: "5th %", value: monteCarlo.lower_bound_5th_percentile },
-                          { label: "95th %", value: monteCarlo.upper_bound_95th_percentile }
-                        ]}>
-                          <XAxis dataKey="label" tick={{fill:'#fff'}} />
-                          <YAxis tick={{fill:'#fff'}} />
-                          <Tooltip contentStyle={{ background: "#181f31", border: "none" }}/>
-                          <Line type="monotone" dataKey="value" stroke="#9b5cff" strokeWidth={3} dot />
+                  <div className="bg-[#232b44] rounded-lg h-64 p-2">
+                    {navHistory.length > 0 ? (
+                      <ResponsiveContainer width="100%" height="100%">
+                        <LineChart data={navHistory.slice(
+                          selectedPeriod === "1Y" ? -365 :
+                          selectedPeriod === "6M" ? -180 :
+                          selectedPeriod === "3M" ? -90 :
+                          -30
+                        )}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                          <Line 
+                            type="monotone" 
+                            dataKey="nav" 
+                            stroke="#06b6d4" 
+                            strokeWidth={2} 
+                            dot={false} 
+                          />
+                          <XAxis 
+                            dataKey="date" 
+                            tick={{fill:'#9ca3af', fontSize: 9}}
+                            angle={-45}
+                            textAnchor="end"
+                            height={60}
+                          />
+                          <YAxis 
+                            domain={["auto", "auto"]} 
+                            tick={{fill:'#9ca3af', fontSize: 10}}
+                            tickFormatter={(val) => '₹' + val.toFixed(2)}
+                          />
+                          <Tooltip 
+                            contentStyle={{ background: "#1f2937", border: "1px solid #374151", borderRadius: "6px" }}
+                            formatter={(value) => ['₹' + value, 'NAV']}
+                          />
                         </LineChart>
                       </ResponsiveContainer>
                     ) : (
-                      <span className="text-gray-400 text-xs flex items-center justify-center h-full">No data</span>
+                      <span className="text-gray-400 text-sm flex items-center justify-center h-full">No data</span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Performance Heatmap */}
+                <div className="bg-[#181f31] rounded-xl p-6 shadow-lg h-fit">
+                  <h3 className="text-xl font-bold mb-4 text-white border-b border-gray-700 pb-2">Performance Heatmap</h3>
+                  <div className="h-64">
+                    <PerformanceHeatmap data={heatmap} />
+                  </div>
+                </div>
+
+                {/* Monte Carlo Prediction */}
+                <div className="bg-[#181f31] rounded-xl p-6 shadow-lg h-fit">
+                  <h3 className="text-xl font-bold mb-3 text-white border-b border-gray-700 pb-2">Monte Carlo Prediction (1 Year)</h3>
+                  <div className="space-y-3 mb-4 text-base">
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-300 font-medium">Expected NAV:</span> 
+                      <span className="font-bold text-white">{monteCarlo.expected_nav?.toFixed(2) ?? "--"}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-300 font-medium">Probability of Positive Return:</span> 
+                      <span className="font-bold text-white">{formatPct(monteCarlo.probability_positive_return / 100)}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-300 font-medium">Range:</span> 
+                      <span className="font-bold text-white">{monteCarlo.lower_bound_5th_percentile?.toFixed(2)} - {monteCarlo.upper_bound_95th_percentile?.toFixed(2)}</span>
+                    </div>
+                  </div>
+                  <div className="bg-[#232b44] rounded-lg h-80 p-2">
+                    {monteCarlo.simulation_paths?.length ? (
+                      <ResponsiveContainer width="100%" height="100%">
+                        <LineChart data={monteCarlo.historical_predicted}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                          <XAxis 
+                            dataKey="day" 
+                            tick={{fill:'#9ca3af', fontSize: 10}} 
+                            label={{ value: 'Trading Days', position: 'insideBottom', offset: -5, fill: '#9ca3af', fontSize: 11 }}
+                          />
+                          <YAxis 
+                            tick={{fill:'#9ca3af', fontSize: 10}}
+                            label={{ value: 'NAV (₹)', angle: -90, position: 'insideLeft', fill: '#9ca3af', fontSize: 11 }}
+                          />
+                          <Tooltip 
+                            contentStyle={{ background: "#1f2937", border: "1px solid #374151", borderRadius: "6px" }}
+                            labelStyle={{ color: '#f3f4f6' }}
+                          />
+                          <Legend 
+                            wrapperStyle={{ fontSize: '11px' }}
+                            iconType="line"
+                          />
+                          
+                          {/* Historical + Predicted (purple) */}
+                          <Line 
+                            type="monotone" 
+                            dataKey="value" 
+                            data={monteCarlo.historical_predicted}
+                            stroke="#8b5cf6" 
+                            strokeWidth={2}
+                            dot={false}
+                            name="Historical + Predicted"
+                          />
+                          
+                          {/* Simulation paths */}
+                          {monteCarlo.simulation_paths?.map((sim, idx) => (
+                            <Line
+                              key={sim.name}
+                              type="monotone"
+                              dataKey="value"
+                              data={sim.data}
+                              stroke={
+                                idx === 0 ? "#10b981" : // green
+                                idx === 1 ? "#14b8a6" : // teal
+                                idx === 2 ? "#06b6d4" : // cyan
+                                "#3b82f6"                // blue
+                              }
+                              strokeWidth={1}
+                              dot={false}
+                              name={sim.name}
+                              opacity={0.6}
+                            />
+                          ))}
+                        </LineChart>
+                      </ResponsiveContainer>
+                    ) : (
+                      <span className="text-gray-400 text-sm flex items-center justify-center h-full">No data</span>
                     )}
                   </div>
                 </div>
               </div>
+            </div>
+
+            {/* Compare Funds Section - Full Width */}
+            <div className="mt-8 bg-[#181f31] rounded-xl p-8 shadow-lg">
+              <h3 className="text-2xl font-bold mb-6 text-white">Compare Funds</h3>
+              <div className="grid md:grid-cols-2 gap-4 mb-6">
+                <div>
+                  <input
+                    type="text"
+                    placeholder="Search for first fund..."
+                    className="w-full bg-[#232b44] text-white p-4 rounded-lg text-base focus:outline-none focus:ring-2 focus:ring-purple-500 placeholder-gray-400"
+                  />
+                </div>
+                <div>
+                  <input
+                    type="text"
+                    placeholder="Search for second fund..."
+                    className="w-full bg-[#232b44] text-white p-4 rounded-lg text-base focus:outline-none focus:ring-2 focus:ring-purple-500 placeholder-gray-400"
+                  />
+                </div>
+              </div>
+              <p className="text-center text-gray-400 text-base">
+                Select two funds to compare their performance metrics
+              </p>
             </div>
           </>
         )}
