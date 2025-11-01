@@ -3,6 +3,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
+import { useUser } from "@clerk/nextjs";
 import {
   LineChart,
   Line,
@@ -136,6 +137,8 @@ export default function MFDetailsPage() {
   
   // AI Report Modal state
   const [showAIReport, setShowAIReport] = useState(false);
+  const [addingToPortfolio, setAddingToPortfolio] = useState(false);
+  const { user } = useUser();
 
   useEffect(() => {
     setLoading(true);
@@ -215,6 +218,63 @@ export default function MFDetailsPage() {
     setSelectedFund2(fund);
     setFund2Query(fund.name);
     setShowFund2Dropdown(false);
+  };
+
+  const handleAddToPortfolio = async () => {
+    if (!user) {
+      alert("Please sign in to add items to your portfolio");
+      return;
+    }
+
+    try {
+      setAddingToPortfolio(true);
+      console.log('Adding to portfolio:', {
+        userId: user.id,
+        schemeCode,
+        name: meta?.scheme_name || meta?.schemeName || schemeCode
+      });
+
+      // Using Next.js API route instead of calling FastAPI directly
+      const userId = user.id.replace('user_', ''); // Remove 'user_' prefix if present
+      const response = await fetch(`/api/portfolio/add/${userId}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          symbol: schemeCode,
+          name: meta?.scheme_name || meta?.schemeName || schemeCode,
+          item_type: "mutual_fund"
+        }),
+      });
+
+      const responseText = await response.text();
+      console.log('API Response:', response.status, responseText);
+
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch (e) {
+        console.error('Error parsing response:', e);
+        throw new Error('Invalid response from server');
+      }
+
+      if (!response.ok) {
+        if (response.status === 400) {
+          alert(data.detail || "Fund already in portfolio");
+        } else {
+          throw new Error(data.detail || "Failed to add to portfolio");
+        }
+        return;
+      }
+
+      alert("Successfully added to portfolio!");
+    } catch (error) {
+      console.error("Error adding to portfolio:", error);
+      alert(error.message || "Failed to add to portfolio. Please try again.");
+    } finally {
+      setAddingToPortfolio(false);
+    }
   };
 
   // Calculate future returns
@@ -299,8 +359,14 @@ export default function MFDetailsPage() {
                       <span className="text-white font-semibold text-right">{meta?.scheme_name || meta?.schemeName || 'Not Available'}</span>
                     </div>
                   </div>
-                  <button className="w-full bg-green-600 hover:bg-green-700 text-white px-6 py-3 text-base font-semibold mt-6 rounded-lg transition-colors">
-                    Add to Portfolio
+                  <button 
+                    onClick={handleAddToPortfolio}
+                    disabled={addingToPortfolio}
+                    className={`w-full bg-green-600 hover:bg-green-700 text-white px-6 py-3 text-base font-semibold mt-6 rounded-lg transition-colors ${
+                      addingToPortfolio ? 'opacity-50 cursor-not-allowed' : ''
+                    }`}
+                  >
+                    {addingToPortfolio ? 'Adding...' : 'Add to Portfolio'}
                   </button>
                 </div>
 

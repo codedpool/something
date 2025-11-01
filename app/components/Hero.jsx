@@ -29,6 +29,11 @@ export default function Hero() {
               <a className="hover:underline hover:text-white transition-colors" href="#">Get Started</a>
               <Link href="/StockDashboard" className="hover:underline hover:text-white transition-colors">StockDashboard</Link>
               <Link href="/MFDashboard" className="hover:underline hover:text-white transition-colors">MFDashboard</Link>
+              <SignedIn>
+                <Link href="/Portfolio" className="text-purple-400 hover:text-purple-300 hover:underline transition-colors">
+                  My Portfolio
+                </Link>
+              </SignedIn>
             </nav>
 
             {/* Clerk Auth Buttons - Styled to Match Design */}

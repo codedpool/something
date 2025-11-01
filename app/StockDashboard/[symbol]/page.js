@@ -1,6 +1,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
+import { useUser } from "@clerk/nextjs";
 import AIDostModal from "../../components/AIDostModal";
 import AIReportModal from "../../components/AIReportModal";
 import {
@@ -126,6 +127,8 @@ import {
     // AI Modals
     const [showAIDost, setShowAIDost] = useState(false);
     const [showAIReport, setShowAIReport] = useState(false);
+    const [addingToPortfolio, setAddingToPortfolio] = useState(false);
+    const { user } = useUser();
 
     useEffect(() => {
       setLoading(true);
@@ -209,13 +212,68 @@ import {
       setStock1Query(s.name || s.symbol);
       setShowStock1Dropdown(false);
     };
-    const handleStock2Select = (s) => {
-      setSelectedStock2(s);
-      setStock2Query(s.name || s.symbol);
-      setShowStock2Dropdown(false);
-    };
+  const handleStock2Select = (s) => {
+    setSelectedStock2(s);
+    setStock2Query(s.name || s.symbol);
+    setShowStock2Dropdown(false);
+  };
 
-    const estReturn = amount * Math.pow(1 + (riskVolatility.annualized_return || 0), Number(years || 1));
+  const handleAddToPortfolio = async () => {
+    if (!user) {
+      alert("Please sign in to add items to your portfolio");
+      return;
+    }
+
+    try {
+      setAddingToPortfolio(true);
+      console.log('Adding to portfolio:', {
+        userId: user.id,
+        symbol,
+        name: profile?.longName || symbol
+      });
+
+      // Using Next.js API route instead of calling FastAPI directly
+      const userId = user.id.replace('user_', ''); // Remove 'user_' prefix if present
+      const response = await fetch(`/api/portfolio/add/${userId}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          symbol: symbol,
+          name: profile?.longName || symbol,
+          item_type: "stock"
+        }),
+      });
+
+      const responseText = await response.text();
+      console.log('API Response:', response.status, responseText);
+
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch (e) {
+        console.error('Error parsing response:', e);
+        throw new Error('Invalid response from server');
+      }
+
+      if (!response.ok) {
+        if (response.status === 400) {
+          alert(data.detail || "Stock already in portfolio");
+        } else {
+          throw new Error(data.detail || "Failed to add to portfolio");
+        }
+        return;
+      }
+
+      alert("Successfully added to portfolio!");
+    } catch (error) {
+      console.error("Error adding to portfolio:", error);
+      alert(error.message || "Failed to add to portfolio. Please try again.");
+    } finally {
+      setAddingToPortfolio(false);
+    }
+  };    const estReturn = amount * Math.pow(1 + (riskVolatility.annualized_return || 0), Number(years || 1));
     const estProfit = estReturn - amount;
 
     return (
@@ -267,7 +325,15 @@ import {
                         <span className="text-white font-semibold">{symbol}</span>
                       </div>
                     </div>
-                    <button className="w-full bg-green-600 hover:bg-green-700 text-white px-6 py-3 text-base font-semibold mt-6 rounded-lg transition-colors">Add to Portfolio</button>
+                    <button 
+                      onClick={handleAddToPortfolio}
+                      disabled={addingToPortfolio}
+                      className={`w-full bg-green-600 hover:bg-green-700 text-white px-6 py-3 text-base font-semibold mt-6 rounded-lg transition-colors ${
+                        addingToPortfolio ? 'opacity-50 cursor-not-allowed' : ''
+                      }`}
+                    >
+                      {addingToPortfolio ? 'Adding...' : 'Add to Portfolio'}
+                    </button>
                   </div>
 
                   <div className="bg-[#181f31] rounded-xl p-6 shadow-lg h-fit">
