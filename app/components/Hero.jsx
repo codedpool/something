@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import Earth from "@/components/uilayouts/globe";
 
 export default function Hero() {
@@ -19,6 +20,8 @@ export default function Hero() {
               <a className="hover:underline hover:text-white transition-colors" href="#">Why Choose Us</a>
               <a className="hover:underline hover:text-white transition-colors" href="#">Whitepaper</a>
               <a className="hover:underline hover:text-white transition-colors" href="#">Get Started</a>
+              <Link href="/StockDashboard" className="hover:underline hover:text-white transition-colors">StockDashboard</Link>
+              <Link href="/MFDashboard" className="hover:underline hover:text-white transition-colors">MFDashboard</Link>
             </nav>
 
             <div className="ml-auto hidden md:flex items-center gap-3">
