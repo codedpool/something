@@ -10,6 +10,10 @@ module.exports = {
         source: '/api/stock/:path*',
         destination: 'http://localhost:8000/api/stock/:path*', // your FastAPI stock route
       },
+      {
+        source: '/api/crypto/:path*',
+        destination: 'http://localhost:8000/api/crypto/:path*', // your FastAPI crypto route
+      },
     ];
   },
 }
