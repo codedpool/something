@@ -2,8 +2,8 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
-import AIDostModal from "../../components/AIDostModal";
-import AIReportModal from "../../components/AIReportModal";
+import StockAIDostModal from "../../components/StockAIDostModal";
+import StockAIReportModal from "../../components/StockAIReportModal";
 import Chatbot from "../../components/Chatbot";
 import {
   ResponsiveContainer,
@@ -509,8 +509,8 @@ import {
                 {!selectedStock1 && !selectedStock2 && (<p className="text-center text-gray-400 text-base">Search and select two stocks to compare their performance metrics</p>)}
               </div>
 
-              <AIDostModal isOpen={showAIDost} onClose={() => setShowAIDost(false)} fundData={{ meta: profile, navHistory: history, riskVolatility, monteCarlo }} />
-              <AIReportModal isOpen={showAIReport} onClose={() => setShowAIReport(false)} fundData={{ meta: profile, navHistory: history, riskVolatility, monteCarlo }} />
+              <StockAIDostModal isOpen={showAIDost} onClose={() => setShowAIDost(false)} stockData={{ meta: profile, navHistory: history, riskVolatility, monteCarlo }} />
+              <StockAIReportModal isOpen={showAIReport} onClose={() => setShowAIReport(false)} stockData={{ meta: profile, navHistory: history, riskVolatility, monteCarlo }} />
               
               {/* Chatbot */}
               <Chatbot
