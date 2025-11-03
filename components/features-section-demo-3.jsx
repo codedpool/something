@@ -31,14 +31,16 @@ export default function FeaturesSectionDemo() {
         "Whether its you or Tyler Durden, you can get to know about our product on YouTube",
       skeleton: <SkeletonThree />,
       className:
-        "col-span-1 lg:col-span-3 lg:border-r  dark:border-neutral-800",
+        "col-span-1 lg:col-span-3 lg:border-r dark:border-neutral-800 lg:pb-6",
     },
     {
       title: "Deploy in seconds",
       description:
         "With our blazing fast, state of the art, cutting edge, we are so back cloud servies (read AWS) - you can deploy your model in seconds.",
       skeleton: <SkeletonFour />,
-      className: "col-span-1 lg:col-span-3 border-b lg:border-none",
+     className:
+  "col-span-1 lg:col-span-3 lg:border-r dark:border-neutral-800 lg:pb-12 relative after:content-[''] after:absolute after:-bottom-6 after:right-0 after:w-px after:h-6 after:bg-neutral-800",
+
     },
   ];
   return (
@@ -133,23 +135,34 @@ export const SkeletonOne = () => {
 
 export const SkeletonThree = () => {
   return (
-    <div className="flex justify-center items-center">
-      <a
-        href="https://www.youtube.com/watch?v=RPa3_AD1_Vs"
-        target="__blank"
-        className="group block w-[300px] h-[300px] rounded-md overflow-hidden shadow-xl">
-        <img
-          src="https://assets.aceternity.com/fireship.jpg"
-          alt="Watch on YouTube"
-          width={300}
-          height={300}
-          className="w-[300px] h-[300px] object-cover rounded-md transition-all duration-200 group-hover:blur-sm"
-        />
-        <IconBrandYoutubeFilled className="absolute z-10 left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 h-14 w-14 text-red-500 drop-shadow-lg" />
-      </a>
+    <div className="flex justify-center items-center mt-6">
+      <div className="relative w-[300px] h-[300px] bg-white/10 backdrop-blur-xl rounded-lg border border-white/20 shadow-2xl p-4 flex flex-col justify-between">
+        {/* Chat Messages */}
+        <div className="flex flex-col gap-2 text-sm text-white overflow-hidden">
+          <div className="self-start bg-white/20 px-3 py-2 rounded-lg rounded-bl-none max-w-[80%]">
+            Hey! 👋 How can I help you today?
+          </div>
+          <div className="self-end bg-blue-500/80 px-3 py-2 rounded-lg rounded-br-none max-w-[80%]">
+            Tell me about your AI features.
+          </div>
+        </div>
+
+        {/* Input Bar */}
+        <div className="flex items-center gap-2 mt-3">
+          <input
+            type="text"
+            placeholder="Type your message..."
+            className="w-full px-3 py-2 rounded-md bg-white/20 text-white placeholder-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+          />
+          <button className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-md text-sm transition-all">
+            ➤
+          </button>
+        </div>
+      </div>
     </div>
   );
 };
+
 
 
 export const SkeletonTwo = () => {
