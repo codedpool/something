@@ -8,28 +8,28 @@ import { motion } from "framer-motion";
 
 const testimonials = [
   {
-    text: "“This product has completely transformed how I manage my projects and deadlines”",
-    name: "Sweety Patel",
-    title: "Director @ Quantum",
-    avatarImg: avatar1,
-  },
-  {
-    text: "“These AI tools have completely revolutionized our SEO entire strategy overnight”",
-    name: "Jaymin Limbu",
-    title: "Founder @ Pulse",
+    text: "“WealthPulse gave me the confidence to start investing. The real-time insights make complex data feel simple and actionable.”",
+    name: "Aarav Sharma",
+    title: "Young Investor",
     avatarImg: avatar2,
   },
   {
-    text: "“The user interface is so intuitive and easy to use, it has saved us countless hours”",
-    name: "Kamla Harrice",
-    title: "Product @ Innovate",
+    text: "“The AI-driven recommendations and learning hub have completely changed how I understand mutual funds and crypto.”",
+    name: "Priya Mehta",
+    title: "Finance Student",
     avatarImg: avatar3,
   },
   {
-    text: "“Our team's productivity has increased significantly since we started using this tool”",
-    name: "John Doe",
-    title: "CTO @ Tech Solutions",
+    text: "“As a working professional, I finally have a single dashboard to track my portfolio and make smarter financial moves.”",
+    name: "Rahul Khanna",
+    title: "Product Manager @ FinEdge",
     avatarImg: avatar4,
+  },
+  {
+    text: "“WealthPulse makes investing feel effortless — it’s like having a personal financial advisor powered by AI.”",
+    name: "Neha Kapoor",
+    title: "Entrepreneur",
+    avatarImg: avatar1,
   },
 ];
 
@@ -38,10 +38,10 @@ export const Testimonials = () => {
     <section className="py-20 md:py-24 bg-black">
       <div className="container flex flex-col items-center justify-center mx-auto">
         <h2 className="text-5xl md:text-6xl font-medium tracking-tighter text-white text-center mx-auto">
-          Beyond Expectations.
+          Trusted by Smart Investors.
         </h2>
         <p className="text-gray-400 text-lg md:text-xl max-w-sm mx-auto text-center mt-5 tracking-tight">
-          Our revolutionary AI SEO tools have transformed our clients' strategies.
+          Discover how WealthPulse empowers users to invest confidently and grow smarter with AI-driven insights.
         </p>
 
         {/* Hide scrollbar cleanly */}

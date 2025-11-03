@@ -6,7 +6,7 @@ export const Footer = () => {
           
           {/* Left side — Logo text */}
           <div className="flex gap-2 items-center justify-center lg:flex-1">
-            <div className="text-lg font-semibold tracking-tight p-2 text-center">AI Startup</div>
+            <div className="text-lg font-semibold tracking-tight p-2 text-center">Phoenix Arcana</div>
             </div>
 
           {/* Center — Navigation links */}
@@ -20,7 +20,6 @@ export const Footer = () => {
 
           {/* Right side — Social links as text */}
           <div className="flex gap-5 lg:flex-1 justify-center lg:justify-end text-sm">
-            <a href="#" className="text-white/40 hover:text-white transition">X</a>
             <a href="#" className="text-white/40 hover:text-white transition">Instagram</a>
             <a href="#" className="text-white/40 hover:text-white transition">YouTube</a>
           </div>

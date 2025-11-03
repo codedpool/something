@@ -79,11 +79,12 @@ export const CallToAction = () => {
 
           {/* Text + Button */}
           <div className="relative text-center">
-            <h2 className="text-5xl md:text-6xl font-medium tracking-tighter max-w-sm mx-auto">
-              AI-driven SEO for everyone.
+            <h2 className="text-5xl md:text-6xl font-medium tracking-tighter max-w-2xl mx-auto">
+              Empower Your Financial Future with WealthPulse
             </h2>
-            <p className="text-lg md:text-xl text-white/70 mt-5 max-w-xs mx-auto">
-              Achieve clear, impactful results without the complexity.
+            <p className="text-lg md:text-xl text-white/70 mt-5 max-w-lg mx-auto">
+              Real-time AI insights, smart investing tools, and personalized learning,
+              all in one seamless platform to help you invest confidently and grow smarter.
             </p>
 
             <div className="flex justify-center mt-8">
@@ -93,7 +94,7 @@ export const CallToAction = () => {
                            transition-all duration-300 shadow-[0_0_25px_rgba(168,85,247,0.4)]
                            hover:shadow-[0_0_40px_rgba(168,85,247,0.6)] active:scale-95"
               >
-                Join Waitlist
+                Get Started
               </button>
             </div>
           </div>
