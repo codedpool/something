@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import Earth from "@/components/uilayouts/globe";
+import { useState } from "react";
 import {
   SignedIn,
   SignedOut,
@@ -12,111 +12,201 @@ import {
 } from "@clerk/nextjs";
 
 export default function Hero() {
+  const [openNavigation, setOpenNavigation] = useState(false);
+
+  const toggleNavigation = () => setOpenNavigation(!openNavigation);
+  const handleNavClick = () => setOpenNavigation(false);
+
   return (
-    <section className="relative w-full min-h-[760px] bg-gradient-to-b from-[#050511] via-[#0d1020] to-[#0b0b12] overflow-hidden text-white">
-
-      {/* Top navbar */}
-      <header className="absolute left-0 right-0 top-6 z-30">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="flex items-center gap-4 bg-white/5 backdrop-blur-sm border border-white/8 rounded-full px-4 py-2 shadow-md">
-            <div className="w-[46px] h-[46px] rounded-full bg-gradient-to-r from-purple-500 to-pink-400 flex items-center justify-center flex-shrink-0">
-              <span className="font-bold text-white">CD</span>
+    <section className="relative w-full min-h-screen bg-gradient-to-b from-[#050511] via-[#0d1020] to-[#0b0b12] overflow-hidden text-white">
+      {/* Fixed Navbar */}
+      <header
+        className={`fixed top-0 left-0 w-full z-50 border-b border-white/10 backdrop-blur-md transition-all duration-300 ${
+          openNavigation ? "bg-[#0b0b12]/95" : "bg-[#0b0b12]/70"
+        }`}
+      >
+        <div className="flex items-center justify-between max-w-7xl mx-auto px-6 py-4">
+          {/* Logo */}
+          <Link href="/" className="flex items-center gap-2">
+            <div className="w-[42px] h-[42px] rounded-full bg-gradient-to-r from-purple-500 to-pink-400 flex items-center justify-center text-white font-bold text-lg">
+              WP
             </div>
+            <span className="hidden md:block text-white font-semibold text-lg tracking-wide">
+              WealthPulse
+            </span>
+          </Link>
 
-            <nav className="hidden md:flex gap-8 ml-4 text-sm text-gray-100/90">
-              <a className="hover:underline hover:text-white transition-colors" href="#">Why Choose Us</a>
-              <a className="hover:underline hover:text-white transition-colors" href="#">Whitepaper</a>
-              <a className="hover:underline hover:text-white transition-colors" href="#">Get Started</a>
-              <Link href="/StockDashboard" className="hover:underline hover:text-white transition-colors">StockDashboard</Link>
-              <Link href="/MFDashboard" className="hover:underline hover:text-white transition-colors">MFDashboard</Link>
-              <Link href="/CryptoDashboard" className="hover:underline hover:text-white transition-colors">CryptoDashboard</Link>
-              <SignedIn>
-                <Link href="/Portfolio" className="text-purple-400 hover:text-purple-300 hover:underline transition-colors">
-                  My Portfolio
-                </Link>
-              </SignedIn>
-            </nav>
+          {/* Desktop Nav */}
+          <nav className="hidden lg:flex items-center gap-8">
+            {[
+              { name: "Why Choose Us", href: "#" },
+              { name: "Get Started", href: "#" },
+              { name: "StockDashboard", href: "/StockDashboard" },
+              { name: "MFDashboard", href: "/MFDashboard" },
+              { name: "CryptoDashboard", href: "/CryptoDashboard" },
+            ].map((link) => (
+              <Link
+                key={link.name}
+                href={link.href}
+                className="text-sm text-gray-300 hover:text-white transition-colors"
+              >
+                {link.name}
+              </Link>
+            ))}
 
-            {/* Clerk Auth Buttons - Styled to Match Design */}
-            <div className="ml-auto hidden md:flex items-center gap-3">
-              <SignedIn>
-                <UserButton
-                  afterSignOutUrl="/"
-                  appearance={{
-                    elements: {
-                      avatarBox: "w-9 h-9",
-                    },
-                  }}
-                />
-              </SignedIn>
+            <SignedIn>
+              <Link
+                href="/Portfolio"
+                className="text-sm text-purple-400 hover:text-purple-300 transition-colors"
+              >
+                My Portfolio
+              </Link>
+            </SignedIn>
+          </nav>
 
-              <SignedOut>
-                <SignInButton mode="modal">
-                  <button className="text-sm text-white/90 bg-white/6 hover:bg-white/10 px-4 py-2 rounded-full border border-white/6 transition-colors">
-                    Sign in
-                  </button>
-                </SignInButton>
-                <SignUpButton mode="modal">
-                  <button className="text-sm font-semibold bg-gradient-to-r from-[#9b5cff] to-[#f08bd6] text-white px-4 py-2 rounded-full shadow hover:scale-[1.01] transition-transform">
-                    Sign up
-                  </button>
-                </SignUpButton>
-              </SignedOut>
-            </div>
+          {/* Auth Buttons */}
+          <div className="hidden lg:flex items-center gap-3">
+            <SignedIn>
+              <UserButton
+                afterSignOutUrl="/"
+                appearance={{
+                  elements: {
+                    avatarBox: "w-9 h-9",
+                  },
+                }}
+              />
+            </SignedIn>
+            <SignedOut>
+              <SignInButton mode="modal">
+                <button className="text-sm text-white/90 bg-white/5 hover:bg-white/10 px-4 py-2 rounded-full border border-white/10 transition-colors">
+                  Sign in
+                </button>
+              </SignInButton>
+              <SignUpButton mode="modal">
+                <button className="text-sm font-semibold bg-gradient-to-r from-[#9b5cff] to-[#f08bd6] text-white px-4 py-2 rounded-full shadow hover:scale-[1.02] transition-transform">
+                  Sign up
+                </button>
+              </SignUpButton>
+            </SignedOut>
           </div>
+
+          {/* Mobile Menu Toggle */}
+          <button
+            className="lg:hidden w-10 h-10 flex items-center justify-center rounded-md hover:bg-white/10 transition"
+            onClick={toggleNavigation}
+          >
+            <div className="space-y-1">
+              <span
+                className={`block w-6 h-0.5 bg-white transition-all ${
+                  openNavigation ? "rotate-45 translate-y-1.5" : ""
+                }`}
+              ></span>
+              <span
+                className={`block w-6 h-0.5 bg-white transition-all ${
+                  openNavigation ? "opacity-0" : ""
+                }`}
+              ></span>
+              <span
+                className={`block w-6 h-0.5 bg-white transition-all ${
+                  openNavigation ? "-rotate-45 -translate-y-1.5" : ""
+                }`}
+              ></span>
+            </div>
+          </button>
         </div>
+
+        {/* Mobile Nav Drawer */}
+        {openNavigation && (
+          <nav className="lg:hidden fixed top-[70px] left-0 right-0 bg-[#0b0b12] border-t border-white/10 backdrop-blur-md flex flex-col items-center py-6 space-y-6 z-40">
+            {[
+              { name: "Why Choose Us", href: "#" },
+              { name: "Get Started", href: "#" },
+              { name: "StockDashboard", href: "/StockDashboard" },
+              { name: "MFDashboard", href: "/MFDashboard" },
+              { name: "CryptoDashboard", href: "/CryptoDashboard" },
+            ].map((link) => (
+              <Link
+                key={link.name}
+                href={link.href}
+                onClick={handleNavClick}
+                className="text-gray-300 hover:text-white transition-colors text-lg"
+              >
+                {link.name}
+              </Link>
+            ))}
+
+            <SignedIn>
+              <Link
+                href="/Portfolio"
+                onClick={handleNavClick}
+                className="text-purple-400 hover:text-purple-300 text-lg"
+              >
+                My Portfolio
+              </Link>
+            </SignedIn>
+
+            <SignedOut>
+              <SignInButton mode="modal">
+                <button className="text-sm text-white/90 bg-white/5 hover:bg-white/10 px-4 py-2 rounded-full border border-white/10 transition-colors">
+                  Sign in
+                </button>
+              </SignInButton>
+              <SignUpButton mode="modal">
+                <button className="text-sm font-semibold bg-gradient-to-r from-[#9b5cff] to-[#f08bd6] text-white px-4 py-2 rounded-full shadow hover:scale-[1.02] transition-transform">
+                  Sign up
+                </button>
+              </SignUpButton>
+            </SignedOut>
+          </nav>
+        )}
       </header>
 
-      <div className="max-w-7xl mx-auto px-8 pt-32 md:pt-36 pb-20 grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
-        {/* left column - headings */}
-        <div className="md:col-span-7">
-          <div className="mb-6">
-            {/* kept intentionally minimal - header contains the main nav now */}
-          </div>
+      {/* Main Hero */}
+     <div className="relative z-10 pt-40 pb-20 flex flex-col items-center text-center px-6">
+  <h1 className="text-5xl md:text-6xl font-extrabold leading-tight mb-12 font-poppins">
+    Transforming complex finance into
+    <span className="block relative">
+      <span className="relative inline-block px-4">
+        Simple, Smart decisions
+        <span className="absolute left-[-1rem] right-[-1rem] top-full h-[7px] bg-gradient-to-r from-[#9b5cff] to-[#f08bd6] mt-2" style={{ borderRadius: '0 0 100% 100%' }}></span>
+      </span>
+    </span>
+  </h1>
 
-          <h1 className="text-5xl md:text-6xl font-extrabold leading-tight drop-shadow-[0_10px_30px_rgba(0,0,0,0.6)]">
-            Empowering Your
-            <br />
-            Financial Freedom
-          </h1>
 
-          <p className="mt-6 text-lg text-gray-200 max-w-xl">Coinlend DeFi Unlocks Your Potential</p>
+        <p className="text-lg text-gray-300 max-w-2xl mb-8 mt-6">
+  Unleash your financial potential with WealthPulse
+  <br />
+  <span className="italic">your AI-powered investment companion.</span>
+</p>
 
-          <div className="mt-10 flex items-center gap-6">
-            <button className="inline-flex items-center gap-3 bg-gradient-to-r from-[#9b5cff] to-[#f08bd6] text-white font-semibold px-6 py-3 rounded-full shadow-lg hover:scale-[1.01] transition-transform">
-              Connect Wallet
-              <span className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center">→</span>
-            </button>
-          </div>
-        </div>
 
-        {/* right column - globe + card */}
-        <div className="md:col-span-5 relative flex justify-end items-start">
-          <div className="w-[520px] h-[520px] rounded-3xl bg-[radial-gradient(ellipse_at_bottom_right,_var(--tw-gradient-stops))] from-transparent to-transparent relative overflow-hidden">
-            <Earth className="w-full h-full rounded-3xl" />
-          </div>
+        <button className="inline-flex items-center gap-3 bg-gradient-to-r from-[#9b5cff] to-[#f08bd6] text-white font-semibold px-6 py-3 rounded-full shadow-lg hover:scale-[1.02] transition-transform">
+          Get Started
+          <span className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center">
+            →
+          </span>
+        </button>
 
-          <aside className="absolute right-0 bottom-0 translate-x-6 w-[320px] bg-white/6 backdrop-blur-md border border-white/12 rounded-2xl p-6 shadow-2xl">
-            <h3 className="text-2xl font-bold mb-2">Get Started</h3>
-            <p className="text-sm text-gray-200 mb-6">Begin by selecting your preferred process style to get started.</p>
+        {/* Hero Graphic */}
+        <div className="relative mt-16 w-full max-w-4xl">
+          
 
-            <div className="flex flex-col gap-4">
-              <button className="flex items-center justify-between gap-4 bg-white/6 hover:bg-white/10 border border-white/8 rounded-full px-4 py-3 transition-colors">
-                <span>Wizard Mode</span>
-                <span className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">→</span>
-              </button>
-
-              <button className="flex items-center justify-between gap-4 bg-white/6 hover:bg-white/10 border border-white/8 rounded-full px-4 py-3 transition-colors">
-                <span>Expert Mode</span>
-                <span className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">→</span>
-              </button>
-            </div>
-          </aside>
+          {/* Background Glow */}
+          <div className="absolute -top-40 left-1/2 -translate-x-1/2 w-[900px] h-[900px] bg-[radial-gradient(circle_at_center,_rgba(155,92,255,0.25),_transparent_70%)] blur-3xl"></div>
         </div>
       </div>
 
-      {/* bottom section */}
-      <div className="absolute left-0 right-0 bottom-0 h-48 bg-gradient-to-t from-[#0b0710]/80 to-transparent" />
+      {/* Bottom Gradient Fade */}
+      {/* Bottom Gradient Glow & Fade Transition */}
+<div className="absolute left-0 right-0 bottom-0 h-[350px] w-full">
+  {/* Inner glow that radiates upward */}
+  <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(155,92,255,0.25)_0%,_rgba(240,139,214,0.15)_30%,_transparent_80%)] blur-3xl" />
+
+  {/* Smooth gradient that blends with next section */}
+  <div className="absolute inset-0 bg-gradient-to-t from-[#0b0710] via-[#0b0710]/80 to-transparent" />
+</div>
+
     </section>
   );
 }
