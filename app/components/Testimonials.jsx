@@ -56,9 +56,9 @@ export const Testimonials = () => {
             }}
             className="flex gap-5 pr-5 flex-none will-change-transform"
           >
-            {[...testimonials, ...testimonials].map((testimonial) => (
+            {[...testimonials, ...testimonials].map((testimonial, idx) => (
               <div
-                key={testimonial.name}
+                key={`${testimonial.name}-${idx}`}
                 className="border border-white/15 p-6 md:p-10 rounded-xl bg-[linear-gradient(to_bottom_left,rgb(140,69,255,.3),black)] max-w-xs md:max-w-md flex-none"
               >
                 <div className="text-lg md:text-xl tracking-tight text-white">
