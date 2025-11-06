@@ -13,10 +13,9 @@ import {
   BarChart,
   Bar,
   Cell,
+  ComposedChart,
+  Area,
 } from "recharts";
-import AIDostModal from "../../components/AIDostModal";
-import AIReportModal from "../../components/AIReportModal";
-import Chatbot from "../../components/Chatbot";
 
 // Utility functions
 function formatPct(val) {
@@ -45,6 +44,13 @@ function PerformanceHeatmap({ data }) {
     );
   }
 
+  // Format data for bar chart - take last 12 periods
+  const chartData = data.slice(-12).map(item => ({
+    month: item.month || item.period || 'N/A',
+    value: item.dayChange || item.value || 0,
+    displayValue: (item.dayChange || item.value || 0).toFixed(4)
+  }));
+
   // Get color based on performance value
   const getColor = (value) => {
     if (value > 0.15) return "#eab308";  // Yellow for high positive
@@ -55,33 +61,33 @@ function PerformanceHeatmap({ data }) {
   };
 
   return (
-    <div className="w-full h-full bg-white rounded-lg p-4">
+    <div className="w-full h-full">
       <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={data}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+        <BarChart data={chartData}>
+          <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
           <XAxis 
             dataKey="month" 
-            tick={{ fill: '#6b7280', fontSize: 10 }}
+            tick={{ fill: '#9ca3af', fontSize: 10 }}
             angle={-45}
             textAnchor="end"
             height={60}
           />
           <YAxis 
-            tick={{ fill: '#6b7280', fontSize: 10 }}
+            tick={{ fill: '#9ca3af', fontSize: 10 }}
             tickFormatter={(val) => (val * 100).toFixed(2) + '%'}
             reversed={false}
           />
           <Tooltip 
             contentStyle={{ 
-              background: "#ffffff", 
-              border: "1px solid #e5e7eb", 
+              background: "#1f2937", 
+              border: "1px solid #374151", 
               borderRadius: "6px" 
             }}
-            formatter={(value) => [(value * 100).toFixed(4) + '%', 'Monthly Return']}
+            formatter={(value) => [(value * 100).toFixed(4) + '%', 'Period Return']}
           />
-          <Bar dataKey="dayChange" radius={[4, 4, 0, 0]}>
-            {data.map((entry, index) => (
-              <Cell key={`cell-${index}`} fill={getColor(entry.dayChange)} />
+          <Bar dataKey="value" radius={[4, 4, 0, 0]}>
+            {chartData.map((entry, index) => (
+              <Cell key={`cell-${index}`} fill={getColor(entry.value)} />
             ))}
           </Bar>
         </BarChart>
@@ -91,19 +97,19 @@ function PerformanceHeatmap({ data }) {
       <div className="flex items-center justify-end gap-4 mt-2 text-xs">
         <div className="flex items-center gap-1">
           <div className="w-3 h-3 bg-[#8b5cf6] rounded"></div>
-          <span className="text-gray-600">Negative</span>
+          <span className="text-gray-400">Negative</span>
         </div>
         <div className="flex items-center gap-1">
           <div className="w-3 h-3 bg-[#6366f1] rounded"></div>
-          <span className="text-gray-600">Low</span>
+          <span className="text-gray-400">Low</span>
         </div>
         <div className="flex items-center gap-1">
           <div className="w-3 h-3 bg-[#10b981] rounded"></div>
-          <span className="text-gray-600">Medium</span>
+          <span className="text-gray-400">Medium</span>
         </div>
         <div className="flex items-center gap-1">
           <div className="w-3 h-3 bg-[#eab308] rounded"></div>
-          <span className="text-gray-600">High</span>
+          <span className="text-gray-400">High</span>
         </div>
       </div>
     </div>
@@ -111,7 +117,7 @@ function PerformanceHeatmap({ data }) {
 }
 
 export default function CryptoDetailsPage() {
-  const { symbol } = useParams(); // This will be the coin ID from CoinGecko
+  const { symbol } = useParams();
   const [loading, setLoading] = useState(true);
   const [meta, setMeta] = useState(null);
   const [priceHistory, setPriceHistory] = useState([]);
@@ -120,54 +126,28 @@ export default function CryptoDetailsPage() {
   const [monteCarlo, setMonteCarlo] = useState({});
   const [amount, setAmount] = useState(1000);
   const [selectedPeriod, setSelectedPeriod] = useState("1M");
-  // AI modals state
-  const [showAIDost, setShowAIDost] = useState(false);
-  const [showAIReport, setShowAIReport] = useState(false);
 
   useEffect(() => {
-    let mounted = true;
     setLoading(true);
-
-    async function safeFetchJson(url) {
-      const res = await fetch(url);
-      const text = await res.text();
-      if (!res.ok) {
-        throw new Error(`HTTP ${res.status}: ${text}`);
-      }
-      try {
-        return JSON.parse(text);
-      } catch (err) {
-        const e = new Error(`Invalid JSON from ${url}: ${err.message}`);
-        e.responseText = text;
-        throw e;
-      }
-    }
-
-    (async () => {
-      try {
-        const [meta, prices, heat, risk, mc] = await Promise.all([
-          safeFetchJson(`/api/crypto/coin-details/${symbol}`),
-          safeFetchJson(`/api/crypto/historical-price/${symbol}`),
-          safeFetchJson(`/api/crypto/performance-heatmap/${symbol}`),
-          safeFetchJson(`/api/crypto/risk-volatility/${symbol}`),
-          safeFetchJson(`/api/crypto/monte-carlo-prediction/${symbol}`),
-        ]);
-
-        if (!mounted) return;
-
-        setMeta(meta);
-        setPriceHistory(prices);
-        setHeatmap(heat);
-        setRiskVolatility(risk);
-        setMonteCarlo(mc);
-      } catch (error) {
-        console.error('Error loading crypto data:', error, error.responseText || '');
-      } finally {
-        if (mounted) setLoading(false);
-      }
-    })();
-
-    return () => { mounted = false; };
+    // TODO: Replace with actual API calls once your friend provides the endpoints
+    // For now, setting empty/mock data
+    Promise.all([
+      fetch(`/api/crypto/coin-details/${symbol}`).then(r => r.json()).catch(() => ({})),
+      fetch(`/api/crypto/historical-price/${symbol}`).then(r => r.json()).catch(() => []),
+      fetch(`/api/crypto/performance-heatmap/${symbol}`).then(r => r.json()).catch(() => []),
+      fetch(`/api/crypto/risk-volatility/${symbol}`).then(r => r.json()).catch(() => ({})),
+      fetch(`/api/crypto/monte-carlo-prediction/${symbol}`).then(r => r.json()).catch(() => ({})),
+    ]).then(([metaData, prices, heat, risk, mc]) => {
+      setMeta(metaData);
+      setPriceHistory(prices);
+      setHeatmap(heat);
+      setRiskVolatility(risk);
+      setMonteCarlo(mc);
+      setLoading(false);
+    }).catch(error => {
+      console.error('Error:', error);
+      setLoading(false);
+    });
   }, [symbol]);
 
   // Calculate future returns
@@ -183,14 +163,14 @@ export default function CryptoDetailsPage() {
           </div>
         ) : (
           <>
-            {/* Crypto Name Heading */}
+            {/* Page Heading */}
             <div className="mb-6">
               <h1 className="text-3xl md:text-4xl font-bold text-cyan-400 text-center">
                 Cryptocurrency Dashboard
               </h1>
             </div>
 
-            {/* Crypto Name Display */}
+            {/* Crypto Name Display with AI Buttons */}
             <div className="mb-6">
               <div className="bg-[#181f31] rounded-xl p-4 border border-gray-700">
                 <div className="flex items-center justify-center gap-4 mb-4">
@@ -198,7 +178,7 @@ export default function CryptoDetailsPage() {
                     <img src={meta.image} alt={meta.name} className="w-12 h-12 rounded-full" />
                   )}
                   <h2 className="text-xl font-bold text-white text-center">
-                    {meta?.name || symbol} ({meta?.symbol?.toUpperCase()})
+                    {meta?.name || symbol} {meta?.symbol && `(${meta.symbol.toUpperCase()})`}
                   </h2>
                 </div>
                 
@@ -207,33 +187,40 @@ export default function CryptoDetailsPage() {
                     <span className="text-2xl font-bold text-green-400">
                       {formatCurrency(meta.current_price)}
                     </span>
-                    {meta?.price_change_percentage_24h && (
+                    {meta?.price_change_percentage_24h !== undefined && (
                       <span className={`ml-3 text-lg ${meta.price_change_percentage_24h >= 0 ? 'text-green-400' : 'text-red-400'}`}>
                         {meta.price_change_percentage_24h >= 0 ? '+' : ''}{meta.price_change_percentage_24h.toFixed(2)}%
                       </span>
                     )}
                   </div>
                 )}
-                {/* AI Buttons (AI Dost & AI Report) */}
-                <div className="flex gap-4 justify-center mt-4">
-                  <button onClick={() => setShowAIDost(true)} className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white px-6 py-2.5 rounded-lg font-semibold text-base transition-all transform hover:scale-105 shadow-lg flex items-center gap-2">
+
+                {/* AI Buttons */}
+                <div className="flex gap-4 justify-center">
+                  <button className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white px-6 py-2.5 rounded-lg font-semibold text-base transition-all transform hover:scale-105 shadow-lg flex items-center gap-2">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                    </svg>
                     AI Dost
                   </button>
-                  <button onClick={() => setShowAIReport(true)} className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-6 py-2.5 rounded-lg font-semibold text-base transition-all transform hover:scale-105 shadow-lg flex items-center gap-2">
+                  <button className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-6 py-2.5 rounded-lg font-semibold text-base transition-all transform hover:scale-105 shadow-lg flex items-center gap-2">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
                     AI Report
                   </button>
                 </div>
               </div>
             </div>
             
-            {/* Main Grid - 2 columns with equal heights */}
-            <div className="grid lg:grid-cols-2 gap-6 items-start">
+            {/* Main Grid - 2 columns */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* LEFT COLUMN */}
-              <div className="flex flex-col gap-6">
-                {/* Crypto Meta Card */}
+              <div className="h-full flex flex-col gap-6">
+                {/* Crypto Details Card */}
                 <div className="bg-[#181f31] rounded-xl p-6 shadow-lg h-fit">
                   <h3 className="text-xl font-bold mb-4 text-white border-b border-gray-700 pb-2">
-                    {meta?.name || symbol} Details
+                    Crypto Details
                   </h3>
                   <div className="space-y-3">
                     <div className="flex justify-between items-center text-base">
@@ -242,34 +229,38 @@ export default function CryptoDetailsPage() {
                     </div>
                     <div className="flex justify-between items-center text-base">
                       <span className="font-medium text-gray-300">Market Cap:</span> 
-                      <span className="text-white font-semibold">{formatLargeCurrency(meta?.market_cap)}</span>
+                      <span className="text-white font-semibold">{formatLargeCurrency(meta?.market_cap || 0)}</span>
+                    </div>
+                    <div className="flex justify-between items-center text-base">
+                      <span className="font-medium text-gray-300">24h Volume:</span> 
+                      <span className="text-white font-semibold">{formatLargeCurrency(meta?.total_volume || 0)}</span>
                     </div>
                     <div className="flex justify-between items-center text-base">
                       <span className="font-medium text-gray-300">All Time High:</span> 
-                      <span className="text-white font-semibold">{formatCurrency(meta?.ath)}</span>
+                      <span className="text-white font-semibold">{formatCurrency(meta?.ath || 0)}</span>
                     </div>
                     <div className="flex justify-between items-center text-base">
                       <span className="font-medium text-gray-300">All Time Low:</span> 
-                      <span className="text-white font-semibold">{formatCurrency(meta?.atl)}</span>
+                      <span className="text-white font-semibold">{formatCurrency(meta?.atl || 0)}</span>
                     </div>
                     <div className="flex justify-between items-center text-base">
                       <span className="font-medium text-gray-300">24h High:</span> 
-                      <span className="text-white font-semibold">{formatCurrency(meta?.high_24h)}</span>
+                      <span className="text-white font-semibold">{formatCurrency(meta?.high_24h || 0)}</span>
                     </div>
                     <div className="flex justify-between items-center text-base">
                       <span className="font-medium text-gray-300">24h Low:</span> 
-                      <span className="text-white font-semibold">{formatCurrency(meta?.low_24h)}</span>
+                      <span className="text-white font-semibold">{formatCurrency(meta?.low_24h || 0)}</span>
                     </div>
                     <div className="flex justify-between items-center text-base">
                       <span className="font-medium text-gray-300">Circulating Supply:</span> 
-                      <span className="text-white font-semibold">{meta?.circulating_supply ? Number(meta.circulating_supply).toLocaleString() : 'N/A'}</span>
+                      <span className="text-white font-semibold text-right">
+                        {meta?.circulating_supply ? Number(meta.circulating_supply).toLocaleString() : 'N/A'}
+                      </span>
                     </div>
                   </div>
-                  {meta?.homepage && (
-                    <a href={meta.homepage} target="_blank" rel="noopener noreferrer" className="w-full bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 text-base font-semibold mt-6 rounded-lg transition-colors block text-center">
-                      Visit Official Website
-                    </a>
-                  )}
+                  <button className="w-full bg-green-600 hover:bg-green-700 text-white px-6 py-3 text-base font-semibold mt-6 rounded-lg transition-colors">
+                    Add to Portfolio
+                  </button>
                 </div>
 
                 {/* Investment Calculator Card */}
@@ -291,14 +282,14 @@ export default function CryptoDetailsPage() {
                   </div>
                   <div className="mt-6 space-y-3 text-base border-t border-gray-700 pt-4">
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-300 font-medium">Current Coins:</span> 
+                      <span className="text-gray-300 font-medium">Coins You'll Get:</span> 
                       <span className="font-bold text-white text-lg">
                         {meta?.current_price ? (amount / meta.current_price).toFixed(8) : '--'}
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-gray-300 font-medium">Estimated 1Y Value:</span> 
-                      <span className="font-bold text-green-400 text-lg">{formatCurrency(estReturn)}</span>
+                      <span className="font-bold text-white text-lg">{formatCurrency(estReturn)}</span>
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-gray-300 font-medium">Estimated Profit:</span> 
@@ -311,7 +302,7 @@ export default function CryptoDetailsPage() {
                       <span className="font-bold text-white text-lg">{formatPct(riskVolatility.annualized_return)}</span>
                     </div>
                     <p className="text-sm opacity-70 mt-4 text-gray-400 italic">
-                      *Based on historical data and Monte Carlo simulation, actual returns may vary significantly.
+                      *Crypto investments are highly volatile. Past performance doesn't guarantee future results.
                     </p>
                   </div>
                 </div>
@@ -371,7 +362,7 @@ export default function CryptoDetailsPage() {
               </div>
 
               {/* RIGHT COLUMN */}
-              <div className="flex flex-col gap-6">
+              <div className="h-full flex flex-col gap-6">
                 {/* Price History Card */}
                 <div className="bg-[#181f31] rounded-xl p-6 shadow-lg h-fit">
                   <div className="flex justify-between items-center mb-4 border-b border-gray-700 pb-2">
@@ -450,45 +441,68 @@ export default function CryptoDetailsPage() {
                       <span className="font-bold text-white">{formatCurrency(monteCarlo.expected_price)}</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-300 font-medium">Probability of Positive Return:</span> 
-                      <span className="font-bold text-white">{formatPct(monteCarlo.probability_positive_return / 100)}</span>
+                      <span className="text-gray-300 font-medium">Probability of Gain:</span> 
+                      <span className="font-bold text-white">{formatPct((monteCarlo.probability_positive_return || 0) / 100)}</span>
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-gray-300 font-medium">Price Range (5%-95%):</span> 
-                      <span className="font-bold text-white">
+                      <span className="font-bold text-white text-right">
                         {formatCurrency(monteCarlo.lower_bound_5th_percentile)} - {formatCurrency(monteCarlo.upper_bound_95th_percentile)}
                       </span>
                     </div>
                   </div>
-                  <div className="bg-[#232b44] rounded-lg h-64 p-2">
-                    {monteCarlo.expected_price ? (
+                  <div className="bg-[#232b44] rounded-lg h-80 p-2">
+                    {monteCarlo.simulation_paths?.length ? (
                       <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={[
-                          { label: "Current", value: monteCarlo.last_price },
-                          { label: "Expected", value: monteCarlo.expected_price },
-                          { label: "5th %", value: monteCarlo.lower_bound_5th_percentile },
-                          { label: "95th %", value: monteCarlo.upper_bound_95th_percentile }
-                        ]}>
+                        <LineChart data={monteCarlo.historical_predicted || []}>
                           <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
                           <XAxis 
-                            dataKey="label" 
+                            dataKey="day" 
                             tick={{fill:'#9ca3af', fontSize: 10}} 
+                            label={{ value: 'Trading Days', position: 'insideBottom', offset: -5, fill: '#9ca3af', fontSize: 11 }}
                           />
                           <YAxis 
                             tick={{fill:'#9ca3af', fontSize: 10}}
                             tickFormatter={(val) => '$' + val.toFixed(2)}
+                            label={{ value: 'Price ($)', angle: -90, position: 'insideLeft', fill: '#9ca3af', fontSize: 11 }}
                           />
                           <Tooltip 
                             contentStyle={{ background: "#1f2937", border: "1px solid #374151", borderRadius: "6px" }}
-                            formatter={(value) => ['$' + value.toFixed(2), 'Price']}
+                            labelStyle={{ color: '#f3f4f6' }}
                           />
+                          <Legend 
+                            wrapperStyle={{ fontSize: '11px' }}
+                            iconType="line"
+                          />
+                          
                           <Line 
                             type="monotone" 
                             dataKey="value" 
+                            data={monteCarlo.historical_predicted}
                             stroke="#8b5cf6" 
-                            strokeWidth={3} 
-                            dot={{ fill: '#8b5cf6', strokeWidth: 2, r: 6 }}
+                            strokeWidth={2}
+                            dot={false}
+                            name="Historical + Predicted"
                           />
+                          
+                          {monteCarlo.simulation_paths?.map((sim, idx) => (
+                            <Line
+                              key={sim.name}
+                              type="monotone"
+                              dataKey="value"
+                              data={sim.data}
+                              stroke={
+                                idx === 0 ? "#10b981" :
+                                idx === 1 ? "#14b8a6" :
+                                idx === 2 ? "#06b6d4" :
+                                "#3b82f6"
+                              }
+                              strokeWidth={1}
+                              dot={false}
+                              name={sim.name}
+                              opacity={0.6}
+                            />
+                          ))}
                         </LineChart>
                       </ResponsiveContainer>
                     ) : (
@@ -498,11 +512,6 @@ export default function CryptoDetailsPage() {
                 </div>
               </div>
             </div>
-              {/* AI Modals for Crypto (AI Dost & AI Report) */}
-              <AIDostModal isOpen={showAIDost} onClose={() => setShowAIDost(false)} fundData={{ meta, navHistory: priceHistory, riskVolatility, monteCarlo }} />
-              <AIReportModal isOpen={showAIReport} onClose={() => setShowAIReport(false)} fundData={{ meta, navHistory: priceHistory, riskVolatility, monteCarlo }} />
-              {/* Chatbot assistant */}
-              <Chatbot selectedFund={{ name: meta?.name || symbol, code: symbol }} />
           </>
         )}
       </div>
