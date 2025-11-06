@@ -69,8 +69,8 @@ export default function Hero() {
           {/* Desktop Nav */}
           <nav className="hidden lg:flex items-center gap-8">
             {[
-              { name: "Why Choose Us", href: "#" },
-              { name: "Testimonials", href: "#" },
+              { name: "Why Choose Us", href: "#features" },
+              { name: "Testimonials", href: "#testimonials" },
               { name: "StockDashboard", href: "/StockDashboard" },
               { name: "MFDashboard", href: "/MFDashboard" },
               { name: "CryptoDashboard", href: "/CryptoDashboard" },
@@ -149,8 +149,8 @@ export default function Hero() {
         {openNavigation && (
           <nav className="lg:hidden fixed top-[70px] left-0 right-0 bg-[#0b0b12] border-t border-white/10 backdrop-blur-md flex flex-col items-center py-6 space-y-6 z-40">
             {[
-              { name: "Why Choose Us", href: "#" },
-              { name: "Testimonials", href: "#" },
+              { name: "Why Choose Us", href: "#features" },
+              { name: "Testimonials", href: "#testimonials" },
               { name: "StockDashboard", href: "/StockDashboard" },
               { name: "MFDashboard", href: "/MFDashboard" },
               { name: "CryptoDashboard", href: "/CryptoDashboard" },
@@ -214,12 +214,26 @@ export default function Hero() {
           </span>
         </p>
 
-        <button className="inline-flex items-center gap-3 bg-gradient-to-r from-[#9b5cff] to-[#f08bd6] text-white font-semibold px-6 py-3 rounded-full shadow-lg hover:scale-[1.02] transition-transform">
-          Get Started
-          <span className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center">
-            →
-          </span>
-        </button>
+        {/* Get Started: sign up for signed-out users, go to portfolio for signed-in users */}
+        <div>
+          <SignedOut>
+            <SignUpButton mode="redirect">
+              <button className="inline-flex items-center gap-3 bg-gradient-to-r from-[#9b5cff] to-[#f08bd6] text-white font-semibold px-6 py-3 rounded-full shadow-lg hover:scale-[1.02] transition-transform">
+                Get Started
+                <span className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center">
+                  →
+                </span>
+              </button>
+            </SignUpButton>
+          </SignedOut>
+
+          <SignedIn>
+            <Link href="/Portfolio" className="inline-flex items-center gap-3 bg-gradient-to-r from-[#9b5cff] to-[#f08bd6] text-white font-semibold px-6 py-3 rounded-full shadow-lg hover:scale-[1.02] transition-transform">
+              Get Started
+              <span className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center">→</span>
+            </Link>
+          </SignedIn>
+        </div>
 
         {/* Background Glow */}
         <div className="relative mt-16 w-full max-w-4xl">

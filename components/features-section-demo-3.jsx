@@ -43,7 +43,7 @@ export default function FeaturesSectionDemo() {
   ];
 
   return (
-    <section className="relative w-full bg-gradient-to-b from-[#050511] via-[#0d1020] to-[#0b0b12] overflow-hidden text-white">
+    <section id="features" className="relative w-full bg-gradient-to-b from-[#050511] via-[#0d1020] to-[#0b0b12] overflow-hidden text-white">
       <div className="relative z-20 py-6 lg:py-12 max-w-7xl mx-auto">
         <div className="px-8">
           <h4 className="text-3xl lg:text-5xl lg:leading-tight max-w-5xl mx-auto text-center tracking-tight font-medium text-white">

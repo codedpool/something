@@ -35,7 +35,7 @@ const testimonials = [
 
 export const Testimonials = () => {
   return (
-    <section className="py-20 md:py-24 bg-black">
+    <section id="testimonials" className="py-20 md:py-24 bg-black">
       <div className="container flex flex-col items-center justify-center mx-auto">
         <h2 className="text-5xl md:text-6xl font-medium tracking-tighter text-white text-center mx-auto">
           Trusted by Smart Investors.
