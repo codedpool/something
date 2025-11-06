@@ -16,18 +16,11 @@ const useDebounce = (value, delay) => {
 const fetchCoins = async (search = "") => {
   const url = search
     ? `/api/crypto/coins?search=${encodeURIComponent(search)}`
-    : "/api/crypto/coins";
+    : "/api/crypto/famous"; // <- NOTE: fetch famous coins for blank search
   const res = await fetch(url);
   if (!res.ok) return [];
   return await res.json();
 };
-
-function getRandomCoins(coinsArray, count = 6) {
-  if (!Array.isArray(coinsArray)) return [];
-  if (coinsArray.length <= count) return coinsArray;
-  const shuffled = coinsArray.sort(() => 0.5 - Math.random());
-  return shuffled.slice(0, count);
-}
 
 export default function CryptoDashboardPage() {
   const [search, setSearch] = useState("");
@@ -42,17 +35,10 @@ export default function CryptoDashboardPage() {
     setLoading(true);
     fetchCoins(debouncedSearch).then((data) => {
       setCoins(data);
-      if (debouncedSearch) {
-        // Show up to 8 matching results for queries
-        const coinArr = data.slice(0, 8);
-        setDisplayedCoins(coinArr);
-        setNoResults(coinArr.length === 0);
-      } else {
-        // Show 6 random coins for blank search
-        const coinArr = getRandomCoins(data, 6);
-        setDisplayedCoins(coinArr);
-        setNoResults(coinArr.length === 0);
-      }
+      // Show up to 8 matching results for queries
+      const coinArr = debouncedSearch ? data.slice(0, 8) : data;
+      setDisplayedCoins(coinArr);
+      setNoResults(coinArr.length === 0);
       setLoading(false);
     }).catch(error => {
       console.error('Error fetching coins:', error);
@@ -74,7 +60,6 @@ export default function CryptoDashboardPage() {
         <h2 className="text-3xl md:text-4xl font-bold mb-8 text-center text-cyan-400">
           Cryptocurrency Dashboard
         </h2>
-
         {/* Searchbar */}
         <div className="flex justify-center mb-8 relative">
           <input
@@ -96,7 +81,6 @@ export default function CryptoDashboardPage() {
             </button>
           )}
         </div>
-
         {loading ? (
           <div className="flex justify-center py-12">
             <span className="animate-spin border-4 border-purple-400 border-t-transparent rounded-full w-8 h-8"></span>
