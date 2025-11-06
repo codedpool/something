@@ -6,13 +6,48 @@ import numpy as np
 router = APIRouter(prefix="/api/crypto", tags=["Crypto"])
 COINGECKO_BASE = "https://api.coingecko.com/api/v3"
 
-# --- Utility functions ---
-def fetch_all_coins():
-    url = f"{COINGECKO_BASE}/coins/list"
+
+def fetch_top_market_coins(per_page=100, page=1, vs_currency="usd"):
+    url = (
+        f"{COINGECKO_BASE}/coins/markets"
+        f"?vs_currency={vs_currency}&order=market_cap_desc"
+        f"&per_page={per_page}&page={page}&sparkline=false"
+    )
     r = requests.get(url)
     if r.ok:
-        return [{"id": c["id"], "symbol": c["symbol"], "name": c["name"]} for c in r.json()]
+        return r.json()
     return []
+
+def fetch_markets_search(query, vs_currency="usd"):
+    url = (
+        f"{COINGECKO_BASE}/coins/markets?vs_currency={vs_currency}"
+        "&order=market_cap_desc&per_page=100&page=1&sparkline=false"
+    )
+    r = requests.get(url)
+    if not r.ok:
+        return []
+    results = r.json()
+    if query:
+        results = [
+            c for c in results
+            if query.lower() in (c.get('id','') + c.get('symbol','') + c.get('name','')).lower()
+        ]
+        # prioritize exact match
+        prioritized = [
+            c for c in results if
+            c.get('id','').lower() == query.lower() or
+            c.get('symbol','').lower() == query.lower() or
+            c.get('name','').lower() == query.lower()
+        ]
+        # remove dups, prioritized first
+        seen = set()
+        coins = []
+        for c in prioritized + results:
+            if c['id'] not in seen:
+                coins.append(c)
+                seen.add(c['id'])
+        return coins
+    return results
 
 def fetch_coin_market_data(coin_id, vs_currency="usd", days=365):
     url = f"{COINGECKO_BASE}/coins/{coin_id}/market_chart?vs_currency={vs_currency}&days={days}"
@@ -33,7 +68,6 @@ def fetch_coin_details(coin_id):
     return {}
 
 def safeget(d, *path):
-    # For .get() deep access safely
     for p in path:
         if isinstance(d, dict):
             d = d.get(p)
@@ -46,25 +80,22 @@ def safeget(d, *path):
     return d
 
 # --- Routes ---
+
 @router.get("/coins")
 async def get_coins(search: str = ""):
-    coins = fetch_all_coins()
-    if search:
-        prioritized = [
-            c for c in coins if 
-                c["id"].lower() == search.lower() or 
-                c["symbol"].lower() == search.lower() or 
-                c["name"].lower() == search.lower()
-        ]
-        fuzzy = [
-            c for c in coins if 
-                search.lower() in c["id"].lower() or 
-                search.lower() in c["name"].lower() or 
-                search.lower() in c["symbol"].lower()
-        ]
-        coin_dict = {c["id"]: c for c in prioritized + fuzzy}
-        coins = list(coin_dict.values())
-    return coins[:100]
+    if not search:
+        coins = fetch_top_market_coins(per_page=100)
+    else:
+        coins = fetch_markets_search(search)
+    return [{
+        "id": c["id"],
+        "symbol": c["symbol"],
+        "name": c["name"],
+        "image": c.get("image"),
+        "current_price": c.get("current_price"),
+        "market_cap": c.get("market_cap"),
+        "market_cap_rank": c.get("market_cap_rank"),
+    } for c in coins][:100]
 
 @router.get("/coin-details/{coin_id}")
 async def get_coin_details(coin_id: str):
@@ -165,6 +196,33 @@ async def monte_carlo_prediction(coin_id: str, vs_currency: str = "usd", num_sim
         "upper_bound_95th_percentile": percentile_95,
         "last_price": last_price,
     }
+
+@router.get("/famous")
+async def get_famous_coins(vs_currency: str = "usd"):
+    famous_ids = [
+        "bitcoin", "ethereum", "solana", "binancecoin", "tether", "ripple",
+        "cardano", "dogecoin", "tron", "avalanche-2"
+        # add/remove IDs as needed
+    ]
+    url = (
+        f"{COINGECKO_BASE}/coins/markets"
+        f"?vs_currency={vs_currency}&ids={','.join(famous_ids)}"
+        f"&order=market_cap_desc&per_page=10&page=1&sparkline=false"
+    )
+    r = requests.get(url)
+    if not r.ok:
+        return []
+    coins = r.json()
+    return [{
+        "id": c["id"],
+        "symbol": c["symbol"],
+        "name": c["name"],
+        "image": c.get("image"),
+        "current_price": c.get("current_price"),
+        "market_cap": c.get("market_cap"),
+        "market_cap_rank": c.get("market_cap_rank"),
+    } for c in coins]
+
 
 @router.get("/compare-prices")
 async def compare_prices(coin_ids: str, vs_currency: str = "usd", days: int = 365):
