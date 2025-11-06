@@ -60,9 +60,7 @@ export default function Hero() {
         <div className="flex items-center justify-between max-w-7xl mx-auto px-6 py-4">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2">
-            <div className="w-[42px] h-[42px] rounded-full bg-gradient-to-r from-purple-500 to-pink-400 flex items-center justify-center text-white font-bold text-lg">
-              WP
-            </div>
+           
             <span className="hidden md:block text-white font-semibold text-lg tracking-wide">
               WealthPulse
             </span>
@@ -72,7 +70,7 @@ export default function Hero() {
           <nav className="hidden lg:flex items-center gap-8">
             {[
               { name: "Why Choose Us", href: "#" },
-              { name: "Get Started", href: "#" },
+              { name: "Testimonials", href: "#" },
               { name: "StockDashboard", href: "/StockDashboard" },
               { name: "MFDashboard", href: "/MFDashboard" },
               { name: "CryptoDashboard", href: "/CryptoDashboard" },
@@ -152,7 +150,7 @@ export default function Hero() {
           <nav className="lg:hidden fixed top-[70px] left-0 right-0 bg-[#0b0b12] border-t border-white/10 backdrop-blur-md flex flex-col items-center py-6 space-y-6 z-40">
             {[
               { name: "Why Choose Us", href: "#" },
-              { name: "Get Started", href: "#" },
+              { name: "Testimonials", href: "#" },
               { name: "StockDashboard", href: "/StockDashboard" },
               { name: "MFDashboard", href: "/MFDashboard" },
               { name: "CryptoDashboard", href: "/CryptoDashboard" },

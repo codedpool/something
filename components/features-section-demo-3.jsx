@@ -107,15 +107,15 @@ const FeatureDescription = ({ children }) => {
 export const SkeletonOne = () => {
   return (
     <div className="relative flex items-center justify-center py-6 px-3 h-72">
-      <div className="w-full mx-auto bg-white dark:bg-neutral-900 shadow-xl rounded-lg overflow-hidden">
-        <img
-          src="/portfolio.webp"
-          alt="portfolio tracking"
-          width={600}
-          height={600}
-          className="h-72 w-full object-cover object-center rounded-md"
-        />
-      </div>
+        <div className="w-full mx-auto bg-white dark:bg-neutral-900 shadow-xl rounded-lg overflow-hidden">
+          <img
+            src="/ss.png"
+            alt="portfolio tracking"
+            width={600}
+            height={600}
+            className="h-72 w-full object-cover object-center rounded-md"
+          />
+        </div>
 
       <div className="absolute bottom-0 z-40 inset-x-0 h-24 bg-gradient-to-t from-[#0b0b12] via-transparent to-transparent pointer-events-none" />
       <div className="absolute top-0 z-40 inset-x-0 h-24 bg-gradient-to-b from-[#0b0b12] via-transparent to-transparent pointer-events-none" />
@@ -125,11 +125,12 @@ export const SkeletonOne = () => {
 
 export const SkeletonTwo = () => {
   const charts = [
-    "https://images.unsplash.com/photo-1643208587983-fb24f1f4c3d4?q=80&w=3000&auto=format&fit=crop",
-    "https://images.unsplash.com/photo-1559526324-593bc073d938?q=80&w=3000&auto=format&fit=crop",
-    "https://images.unsplash.com/photo-1605902711622-cfb43c4437d7?q=80&w=3000&auto=format&fit=crop",
-    "https://images.unsplash.com/photo-1612197527762-8baf0ebdd1ef?q=80&w=3000&auto=format&fit=crop",
-  ];
+  "https://images.unsplash.com/photo-1551288049-bebda4e38f71", // Charts/analytics
+  "https://images.unsplash.com/photo-1460925895917-afdab827c52f", // Graphs
+  "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3", // Data visualization
+  "https://images.unsplash.com/photo-1563986768609-322da13575f3", // Business charts
+];
+
 
   const imageVariants = {
     whileHover: { scale: 1.05, zIndex: 50 },
