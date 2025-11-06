@@ -99,8 +99,12 @@ async def get_coins(search: str = ""):
 
 @router.get("/coin-details/{coin_id}")
 async def get_coin_details(coin_id: str):
+    # Defensive logging: helpful during debugging and to surface not-found issues
+    print(f"DEBUG: get_coin_details received {coin_id}")
     data = fetch_coin_details(coin_id)
     if not data or "error" in data:
+        # Optionally log this failure for debugging
+        print(f"DEBUG: Coin {coin_id} not found or error in data")
         raise HTTPException(status_code=404, detail="Coin not found")
     market = data.get("market_data", {})
     description = safeget(data, "description", "en")
@@ -130,13 +134,16 @@ async def get_coin_details(coin_id: str):
 @router.get("/historical-price/{coin_id}")
 async def get_historical_price(coin_id: str, vs_currency: str = "usd", days: int = 365):
     df = fetch_coin_market_data(coin_id, vs_currency, days)
+    if df.empty or "date" not in df.columns:
+        return []
     df["date_str"] = df["date"].dt.strftime("%Y-%m-%d")
     return [{"date": row["date_str"], "price": row["price"]} for _, row in df.iterrows()]
 
 @router.get("/performance-heatmap/{coin_id}")
 async def get_performance_heatmap(coin_id: str, vs_currency: str = "usd", days: int = 365):
     df = fetch_coin_market_data(coin_id, vs_currency, days)
-    if not len(df): return []
+    if df.empty or "date" not in df.columns:
+        return []
     df["dayChange"] = df["price"].pct_change().fillna(0)
     df["month"] = df["date"].dt.month
     heatmap = df.groupby("month")["dayChange"].mean().reset_index()
@@ -146,7 +153,7 @@ async def get_performance_heatmap(coin_id: str, vs_currency: str = "usd", days: 
 @router.get("/risk-volatility/{coin_id}")
 async def get_risk_volatility(coin_id: str, vs_currency: str = "usd", days: int = 365):
     df = fetch_coin_market_data(coin_id, vs_currency, days)
-    if not len(df):
+    if df.empty or "date" not in df.columns:
         return {
             "annualized_volatility": 0.0,
             "annualized_return": 0.0,
@@ -230,7 +237,8 @@ async def compare_prices(coin_ids: str, vs_currency: str = "usd", days: int = 36
     comparison_data = {}
     for coin_id in ids:
         df = fetch_coin_market_data(coin_id, vs_currency, days)
-        if not len(df): continue
+        if df.empty or "date" not in df.columns:
+            continue
         df["date_str"] = df["date"].dt.strftime("%Y-%m-%d")
         comparison_data[coin_id] = df.set_index("date_str")["price"]
     if comparison_data:
