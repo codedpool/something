@@ -35,7 +35,7 @@ const testimonials = [
 
 export const Testimonials = () => {
   return (
-    <section className="py-20 md:py-24 bg-black">
+    <section id="testimonials" className="py-20 md:py-24 bg-black">
       <div className="container flex flex-col items-center justify-center mx-auto">
         <h2 className="text-5xl md:text-6xl font-medium tracking-tighter text-white text-center mx-auto">
           Trusted by Smart Investors.
@@ -56,9 +56,9 @@ export const Testimonials = () => {
             }}
             className="flex gap-5 pr-5 flex-none will-change-transform"
           >
-            {[...testimonials, ...testimonials].map((testimonial) => (
+            {[...testimonials, ...testimonials].map((testimonial, idx) => (
               <div
-                key={testimonial.name}
+                key={`${testimonial.name}-${idx}`}
                 className="border border-white/15 p-6 md:p-10 rounded-xl bg-[linear-gradient(to_bottom_left,rgb(140,69,255,.3),black)] max-w-xs md:max-w-md flex-none"
               >
                 <div className="text-lg md:text-xl tracking-tight text-white">
