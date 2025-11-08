@@ -155,6 +155,8 @@ export default function CryptoDetailsPage() {
   const estProfit = estReturn - amount;
 
   return (
+    <>
+  <Navbar />
     <section className="min-h-screen py-12 px-2 bg-gradient-to-b from-[#050511] via-[#0d1020] to-[#0b0b12] text-white">
       <div className="max-w-7xl mx-auto grid gap-6">
         {loading ? (
@@ -516,5 +518,6 @@ export default function CryptoDetailsPage() {
         )}
       </div>
     </section>
+    </>
   );
 }

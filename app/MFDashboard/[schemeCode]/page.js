@@ -20,6 +20,7 @@ import {
 import AIDostModal from "../../components/AIDostModal";
 import AIReportModal from "../../components/AIReportModal";
 import Chatbot from "../../components/Chatbot";
+import Navbar from "../../components/Navbar";
 
 // Utility functions
 function formatPct(val) {
@@ -283,6 +284,8 @@ export default function MFDetailsPage() {
   const estProfit = estReturn - amount;
 
   return (
+    <>
+    <Navbar />
     <section className="min-h-screen py-12 px-2 bg-gradient-to-b from-[#050511] via-[#0d1020] to-[#0b0b12] text-white">
       <div className="max-w-7xl mx-auto grid gap-6">
         {loading ? (
@@ -764,5 +767,6 @@ export default function MFDetailsPage() {
         }}
       />
     </section>
+    </>
   );
 }
