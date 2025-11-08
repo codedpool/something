@@ -51,7 +51,7 @@ export default function AIDostModal({ isOpen, onClose, fundData }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
-      <div className="bg-[#181f31] rounded-2xl max-w-3xl w-full max-h-[85vh] overflow-hidden shadow-2xl border border-gray-700">
+      <div className="bg-[#181f31] rounded-2xl max-w-5xl w-full max-h-[90vh] overflow-hidden shadow-2xl border border-gray-700">
         {/* Header */}
         <div className="bg-gradient-to-r from-cyan-500 to-blue-600 p-6 flex justify-between items-center">
           <div className="flex items-center gap-3">
@@ -71,7 +71,7 @@ export default function AIDostModal({ isOpen, onClose, fundData }) {
         </div>
 
         {/* Content */}
-        <div className="p-6 overflow-y-auto max-h-[calc(85vh-120px)]">
+        <div className="p-6 overflow-y-auto max-h-[calc(90vh-200px)]">
           {loading && (
             <div className="flex flex-col items-center justify-center py-12">
               <div className="animate-spin border-4 border-cyan-400 border-t-transparent rounded-full w-12 h-12 mb-4"></div>

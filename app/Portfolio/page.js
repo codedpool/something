@@ -155,7 +155,7 @@ export default function PortfolioPage() {
           <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
             <div>
               <h1 className="text-3xl font-bold text-white mb-2">My Portfolio</h1>
-              <p className="text-gray-400">Manage your stocks and mutual funds</p>
+              <p className="text-gray-400">Manage your finance</p>
             </div>
             
             <div className="flex gap-4">
