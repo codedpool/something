@@ -21,26 +21,29 @@ export default function PortfolioPage() {
     if (!portfolioItems.length) return;
 
     try {
-      // Calculate aggregate risk and volatility
-      const totalRisk = portfolioItems.reduce((acc, item) => acc + (item.risk_volatility?.annualized_volatility || 0), 0);
+      const totalRisk = portfolioItems.reduce(
+        (acc, item) => acc + (item.risk_volatility?.annualized_volatility || 0),
+        0
+      );
       const avgVolatility = totalRisk / portfolioItems.length;
 
-      // Get weighted average return
-      const totalReturn = portfolioItems.reduce((acc, item) => acc + (item.risk_volatility?.annualized_return || 0), 0);
+      const totalReturn = portfolioItems.reduce(
+        (acc, item) => acc + (item.risk_volatility?.annualized_return || 0),
+        0
+      );
       const avgReturn = totalReturn / portfolioItems.length;
 
       setRiskVolatility({
         annualized_volatility: avgVolatility,
         annualized_return: avgReturn,
-        sharpe_ratio: (avgReturn - 0.05) / avgVolatility, // Using 5% as risk-free rate
+        sharpe_ratio: (avgReturn - 0.05) / avgVolatility,
       });
 
-      // Simplified Monte Carlo for portfolio
       setMonteCarlo({
         expected_nav: portfolioItems.reduce((acc, item) => acc + (item.nav || 0), 0),
-        probability_positive_return: avgReturn > 0 ? 75 : 45, // Simplified probability
+        probability_positive_return: avgReturn > 0 ? 75 : 45,
         lower_bound_5th_percentile: avgReturn * 0.95,
-        upper_bound_95th_percentile: avgReturn * 1.05
+        upper_bound_95th_percentile: avgReturn * 1.05,
       });
     } catch (error) {
       console.error("Error calculating portfolio metrics:", error);
@@ -60,40 +63,41 @@ export default function PortfolioPage() {
       }
 
       try {
-        const userId = user.id.replace('user_', '');
+        const userId = user.id.replace("user_", "");
         const response = await fetch(`/api/portfolio/${userId}`);
-        
+
         if (!response.ok) {
-          throw new Error('Failed to fetch portfolio');
+          throw new Error("Failed to fetch portfolio");
         }
 
         const items = await response.json();
-        
-        // Fetch additional metrics for each item
-        const itemsWithMetrics = await Promise.all(items.map(async (item) => {
-          try {
-            let riskResponse, navResponse;
-            if (item.item_type === 'stock') {
-              riskResponse = await fetch(`/api/stock/risk-volatility/${item.symbol}`);
-              navResponse = await fetch(`/api/stock/profile/${item.symbol}`);
-            } else {
-              riskResponse = await fetch(`/api/mutual/risk-volatility/${item.symbol}`);
-              navResponse = await fetch(`/api/mutual/scheme-details/${item.symbol}`);
+
+        const itemsWithMetrics = await Promise.all(
+          items.map(async (item) => {
+            try {
+              let riskResponse, navResponse;
+              if (item.item_type === "stock") {
+                riskResponse = await fetch(`/api/stock/risk-volatility/${item.symbol}`);
+                navResponse = await fetch(`/api/stock/profile/${item.symbol}`);
+              } else {
+                riskResponse = await fetch(`/api/mutual/risk-volatility/${item.symbol}`);
+                navResponse = await fetch(`/api/mutual/scheme-details/${item.symbol}`);
+              }
+
+              const risk = await riskResponse.json();
+              const nav = await navResponse.json();
+
+              return {
+                ...item,
+                risk_volatility: risk,
+                nav: item.item_type === "stock" ? nav?.currentPrice : nav?.nav,
+              };
+            } catch (error) {
+              console.error(`Error fetching metrics for ${item.symbol}:`, error);
+              return item;
             }
-
-            const risk = await riskResponse.json();
-            const nav = await navResponse.json();
-
-            return {
-              ...item,
-              risk_volatility: risk,
-              nav: item.item_type === 'stock' ? nav?.currentPrice : nav?.nav
-            };
-          } catch (error) {
-            console.error(`Error fetching metrics for ${item.symbol}:`, error);
-            return item;
-          }
-        }));
+          })
+        );
 
         setPortfolioItems(itemsWithMetrics);
       } catch (err) {
@@ -114,17 +118,16 @@ export default function PortfolioPage() {
     }
 
     try {
-      const userId = user.id.replace('user_', '');
+      const userId = user.id.replace("user_", "");
       const response = await fetch(`/api/portfolio/${userId}/${itemId}`, {
-        method: 'DELETE'
+        method: "DELETE",
       });
 
       if (!response.ok) {
-        throw new Error('Failed to remove item');
+        throw new Error("Failed to remove item");
       }
 
-      // Remove item from state
-      setPortfolioItems(items => items.filter(item => item.id !== itemId));
+      setPortfolioItems((items) => items.filter((item) => item.id !== itemId));
       alert("Item removed successfully!");
     } catch (err) {
       console.error("Error removing item:", err);
@@ -135,6 +138,7 @@ export default function PortfolioPage() {
   if (!isSignedIn) {
     return (
       <div className="min-h-screen py-12 px-4 bg-gradient-to-b from-[#050511] via-[#0d1020] to-[#0b0b12]">
+        <Navbar />
         <div className="max-w-7xl mx-auto text-center">
           <h1 className="text-3xl font-bold text-white mb-4">Please Sign In</h1>
           <p className="text-gray-400">You need to be signed in to view your portfolio.</p>
@@ -145,7 +149,8 @@ export default function PortfolioPage() {
 
   return (
     <div className="min-h-screen py-12 px-4 bg-gradient-to-b from-[#050511] via-[#0d1020] to-[#0b0b12]">
-      <div className="max-w-7xl mx-auto">
+      <Navbar /> {/* <-- Added Navbar here */}
+      <div className="max-w-7xl mt-12">
         <div className="mb-8">
           <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
             <div>
@@ -154,7 +159,7 @@ export default function PortfolioPage() {
             </div>
             
             <div className="flex gap-4">
-              <button 
+              <button
                 onClick={() => setShowAIDost(true)}
                 className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white px-6 py-2.5 rounded-lg font-semibold text-base transition-all transform hover:scale-105 shadow-lg flex items-center gap-2"
               >
@@ -163,7 +168,7 @@ export default function PortfolioPage() {
                 </svg>
                 AI Dost
               </button>
-              <button 
+              <button
                 onClick={() => setShowAIReport(true)}
                 className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-6 py-2.5 rounded-lg font-semibold text-base transition-all transform hover:scale-105 shadow-lg flex items-center gap-2"
               >
@@ -197,7 +202,7 @@ export default function PortfolioPage() {
                     <h3 className="text-lg font-semibold text-white mb-1">{item.name}</h3>
                     <p className="text-sm text-gray-400">{item.symbol}</p>
                   </div>
-                  <span className="px-3 py-1 rounded-full text-xs font-medium capitalize" 
+                  <span className="px-3 py-1 rounded-full text-xs font-medium capitalize"
                     style={{
                       backgroundColor: item.item_type === 'stock' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(139, 92, 246, 0.1)',
                       color: item.item_type === 'stock' ? '#10B981' : '#8B5CF6'
@@ -205,7 +210,7 @@ export default function PortfolioPage() {
                     {item.item_type}
                   </span>
                 </div>
-                
+
                 <div className="flex justify-between items-center text-sm text-gray-400">
                   <span>Added: {new Date(item.added_at).toLocaleDateString()}</span>
                   <button
