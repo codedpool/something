@@ -11,8 +11,8 @@ export default function Navbar() {
   const handleNavClick = () => setOpenNavigation(false);
 
   const links = [
-    { name: "Why Choose Us", href: "#features" },
-    { name: "Testimonials", href: "#testimonials" },
+    { name: "Why Choose Us", href: "/#features" },
+    { name: "Testimonials", href: "/#testimonials" },
     { name: "StockDashboard", href: "/StockDashboard" },
     { name: "MFDashboard", href: "/MFDashboard" },
     { name: "CryptoDashboard", href: "/CryptoDashboard" },

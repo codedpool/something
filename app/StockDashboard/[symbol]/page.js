@@ -125,6 +125,9 @@ import Navbar from "../../components/Navbar";
     const [showStock2Dropdown, setShowStock2Dropdown] = useState(false);
     const [selectedStock1, setSelectedStock1] = useState(null);
     const [selectedStock2, setSelectedStock2] = useState(null);
+    const [stock1Data, setStock1Data] = useState(null);
+    const [stock2Data, setStock2Data] = useState(null);
+    const [showComparison, setShowComparison] = useState(false);
 
     // AI Modals
     const [showAIDost, setShowAIDost] = useState(false);
@@ -179,15 +182,17 @@ import Navbar from "../../components/Navbar";
 
     // Debounced search for stock 1
     useEffect(() => {
-      if (stock1Query.length < 2) return setStock1Suggestions([]);
+      if (stock1Query.length < 1) return setStock1Suggestions([]);
       const id = setTimeout(async () => {
         try {
-          const res = await fetch(`/api/stock/search?q=${encodeURIComponent(stock1Query)}`);
+          const res = await fetch(`/api/stock/search-stocks?q=${encodeURIComponent(stock1Query)}`);
           const data = await res.json();
           setStock1Suggestions(data || []);
-          setShowStock1Dropdown(true);
+          setShowStock1Dropdown(true); // Always show dropdown when searching
         } catch (e) {
+          console.error('Error fetching stock suggestions:', e);
           setStock1Suggestions([]);
+          setShowStock1Dropdown(true); // Show dropdown even on error
         }
       }, 300);
       return () => clearTimeout(id);
@@ -195,29 +200,57 @@ import Navbar from "../../components/Navbar";
 
     // Debounced search for stock 2
     useEffect(() => {
-      if (stock2Query.length < 2) return setStock2Suggestions([]);
+      if (stock2Query.length < 1) return setStock2Suggestions([]);
       const id = setTimeout(async () => {
         try {
-          const res = await fetch(`/api/stock/search?q=${encodeURIComponent(stock2Query)}`);
+          const res = await fetch(`/api/stock/search-stocks?q=${encodeURIComponent(stock2Query)}`);
           const data = await res.json();
           setStock2Suggestions(data || []);
-          setShowStock2Dropdown(true);
+          setShowStock2Dropdown(true); // Always show dropdown when searching
         } catch (e) {
+          console.error('Error fetching stock suggestions:', e);
           setStock2Suggestions([]);
+          setShowStock2Dropdown(true); // Show dropdown even on error
         }
       }, 300);
       return () => clearTimeout(id);
     }, [stock2Query]);
 
+    // Fetch data for selected stock 1
+    useEffect(() => {
+      if (!selectedStock1) return;
+      (async () => {
+        try {
+          const res = await fetch(`/api/stock/profile/${selectedStock1.symbol}`);
+          const data = await res.json();
+          setStock1Data({ profile: data });
+        } catch (e) {
+          console.error(e);
+        }
+      })();
+    }, [selectedStock1]);
+
+    // Fetch data for selected stock 2
+    useEffect(() => {
+      if (!selectedStock2) return;
+      (async () => {
+        try {
+          const res = await fetch(`/api/stock/profile/${selectedStock2.symbol}`);
+          const data = await res.json();
+          setStock2Data({ profile: data });
+        } catch (e) {
+          console.error(e);
+        }
+      })();
+    }, [selectedStock2]);
+
     const handleStock1Select = (s) => {
       setSelectedStock1(s);
       setStock1Query(s.name || s.symbol);
-      setShowStock1Dropdown(false);
     };
   const handleStock2Select = (s) => {
     setSelectedStock2(s);
     setStock2Query(s.name || s.symbol);
-    setShowStock2Dropdown(false);
   };
 
   const handleAddToPortfolio = async () => {
@@ -469,11 +502,11 @@ import Navbar from "../../components/Navbar";
                 <div className="grid md:grid-cols-2 gap-6 mb-6">
                   <div className="relative">
                     <label className="block text-base mb-2 text-gray-300 font-medium">First Stock</label>
-                    <input type="text" value={stock1Query} onChange={(e) => { setStock1Query(e.target.value); setSelectedStock1(null); }} onFocus={() => stock1Suggestions.length > 0 && setShowStock1Dropdown(true)} placeholder="Type to search (e.g., TCS, INFY, RELIANCE)..." className="w-full bg-[#232b44] text-white p-4 rounded-lg text-base focus:outline-none focus:ring-2 focus:ring-purple-500 placeholder-gray-400" />
+                    <input type="text" value={stock1Query} onChange={(e) => { setStock1Query(e.target.value); setSelectedStock1(null); }}                     onFocus={() => stock1Query.length >= 1 && setShowStock1Dropdown(true)} placeholder="Type to search (e.g., TCS, INFY, RELIANCE)..." className="w-full bg-[#232b44] text-white p-4 rounded-lg text-base focus:outline-none focus:ring-2 focus:ring-purple-500 placeholder-gray-400" />
                     {showStock1Dropdown && stock1Suggestions.length > 0 && (
                       <div className="absolute z-10 w-full mt-2 bg-[#232b44] border border-gray-600 rounded-lg shadow-xl max-h-80 overflow-y-auto">
                         {stock1Suggestions.map((s) => (
-                          <div key={s.symbol || s.code} onClick={() => handleStock1Select(s)} className="p-4 hover:bg-purple-600 cursor-pointer transition-colors border-b border-gray-700 last:border-b-0">
+                          <div key={s.symbol || s.code} onClick={() => { setShowStock1Dropdown(false); handleStock1Select(s); }} className="p-4 hover:bg-purple-600 cursor-pointer transition-colors border-b border-gray-700 last:border-b-0">
                             <div className="text-white font-medium text-sm mb-1">{s.name || s.longName || s.symbol}</div>
                             <div className="text-gray-400 text-xs">Symbol: {s.symbol || s.code}</div>
                           </div>
@@ -481,16 +514,16 @@ import Navbar from "../../components/Navbar";
                       </div>
                     )}
                     {selectedStock1 && (<div className="mt-2 p-3 bg-green-900/30 border border-green-600 rounded-lg"><div className="text-green-400 text-sm font-medium">✓ Selected: {selectedStock1.name || selectedStock1.symbol}</div><div className="text-gray-400 text-xs mt-1">Symbol: {selectedStock1.symbol || selectedStock1.code}</div></div>)}
-                    <p className="text-xs text-gray-400 mt-2 italic">Type at least 2 characters to search</p>
+                    <p className="text-xs text-gray-400 mt-2 italic">Type any letter to search</p>
                   </div>
 
                   <div className="relative">
                     <label className="block text-base mb-2 text-gray-300 font-medium">Second Stock</label>
-                    <input type="text" value={stock2Query} onChange={(e) => { setStock2Query(e.target.value); setSelectedStock2(null); }} onFocus={() => stock2Suggestions.length > 0 && setShowStock2Dropdown(true)} placeholder="Type to search (e.g., TCS, INFY, RELIANCE)..." className="w-full bg-[#232b44] text-white p-4 rounded-lg text-base focus:outline-none focus:ring-2 focus:ring-purple-500 placeholder-gray-400" />
+                    <input type="text" value={stock2Query} onChange={(e) => { setStock2Query(e.target.value); setSelectedStock2(null); }}                     onFocus={() => stock2Query.length >= 1 && setShowStock2Dropdown(true)} placeholder="Type to search (e.g., TCS, INFY, RELIANCE)..." className="w-full bg-[#232b44] text-white p-4 rounded-lg text-base focus:outline-none focus:ring-2 focus:ring-purple-500 placeholder-gray-400" />
                     {showStock2Dropdown && stock2Suggestions.length > 0 && (
                       <div className="absolute z-10 w-full mt-2 bg-[#232b44] border border-gray-600 rounded-lg shadow-xl max-h-80 overflow-y-auto">
                         {stock2Suggestions.map((s) => (
-                          <div key={s.symbol || s.code} onClick={() => handleStock2Select(s)} className="p-4 hover:bg-purple-600 cursor-pointer transition-colors border-b border-gray-700 last:border-b-0">
+                          <div key={s.symbol || s.code} onClick={() => { setShowStock2Dropdown(false); handleStock2Select(s); }} className="p-4 hover:bg-purple-600 cursor-pointer transition-colors border-b border-gray-700 last:border-b-0">
                             <div className="text-white font-medium text-sm mb-1">{s.name || s.longName || s.symbol}</div>
                             <div className="text-gray-400 text-xs">Symbol: {s.symbol || s.code}</div>
                           </div>
@@ -498,14 +531,83 @@ import Navbar from "../../components/Navbar";
                       </div>
                     )}
                     {selectedStock2 && (<div className="mt-2 p-3 bg-green-900/30 border border-green-600 rounded-lg"><div className="text-green-400 text-sm font-medium">✓ Selected: {selectedStock2.name || selectedStock2.symbol}</div><div className="text-gray-400 text-xs mt-1">Symbol: {selectedStock2.symbol || selectedStock2.code}</div></div>)}
-                    <p className="text-xs text-gray-400 mt-2 italic">Type at least 2 characters to search</p>
+                    <p className="text-xs text-gray-400 mt-2 italic">Type any letter to search</p>
                   </div>
                 </div>
 
                 {selectedStock1 && selectedStock2 && (
                   <div className="text-center">
-                    <button onClick={() => { window.open(`/StockDashboard/${selectedStock1.symbol}`, '_blank'); window.open(`/StockDashboard/${selectedStock2.symbol}`, '_blank'); }} className="bg-gradient-to-r from-purple-600 to-cyan-500 hover:from-purple-700 hover:to-cyan-600 text-white px-8 py-4 rounded-lg text-base font-bold transition-all transform hover:scale-105">Compare These Stocks →</button>
-                    <p className="text-gray-400 text-sm mt-3">Click to open both stock dashboards side by side</p>
+                    <button 
+                      onClick={() => setShowComparison(true)}
+                      className="bg-gradient-to-r from-purple-600 to-cyan-500 hover:from-purple-700 hover:to-cyan-600 text-white px-8 py-4 rounded-lg text-base font-bold transition-all transform hover:scale-105"
+                    >
+                      Compare Stocks
+                    </button>
+                    <p className="text-gray-400 text-sm mt-3">
+                      Click to generate comparison report
+                    </p>
+                  </div>
+                )}
+
+                {showComparison && stock1Data && stock2Data && (
+                  <div className="mt-8 bg-[#181f31] rounded-xl p-8 shadow-lg">
+                    <h3 className="text-2xl font-bold mb-6 text-white">Stock Comparison</h3>
+                    <div className="grid md:grid-cols-2 gap-6">
+                      <div className="bg-[#232b44] rounded-lg p-6">
+                        <h4 className="text-xl font-bold text-white mb-4">{stock1Data.profile?.longName || stock1Data.profile?.companyName || selectedStock1.name}</h4>
+                        <div className="space-y-3">
+                          <div className="flex justify-between items-center text-base">
+                            <span className="font-medium text-gray-300">Industry:</span>
+                            <span className="text-white font-semibold">{stock1Data.profile?.industry || 'Not Available'}</span>
+                          </div>
+                          <div className="flex justify-between items-center text-base">
+                            <span className="font-medium text-gray-300">Sector:</span>
+                            <span className="text-white font-semibold">{stock1Data.profile?.sector || 'Not Available'}</span>
+                          </div>
+                          <div className="flex justify-between items-center text-base">
+                            <span className="font-medium text-gray-300">Market Cap:</span>
+                            <span className="text-white font-semibold">{formatRs(stock1Data.profile?.marketCap || stock1Data.profile?.market_cap)}</span>
+                          </div>
+                          <div className="flex justify-between items-center text-base">
+                            <span className="font-medium text-gray-300">Symbol:</span>
+                            <span className="text-white font-semibold">{selectedStock1.symbol}</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="bg-[#232b44] rounded-lg p-6">
+                        <h4 className="text-xl font-bold text-white mb-4">{stock2Data.profile?.longName || stock2Data.profile?.companyName || selectedStock2.name}</h4>
+                        <div className="space-y-3">
+                          <div className="flex justify-between items-center text-base">
+                            <span className="font-medium text-gray-300">Industry:</span>
+                            <span className="text-white font-semibold">{stock2Data.profile?.industry || 'Not Available'}</span>
+                          </div>
+                          <div className="flex justify-between items-center text-base">
+                            <span className="font-medium text-gray-300">Sector:</span>
+                            <span className="text-white font-semibold">{stock2Data.profile?.sector || 'Not Available'}</span>
+                          </div>
+                          <div className="flex justify-between items-center text-base">
+                            <span className="font-medium text-gray-300">Market Cap:</span>
+                            <span className="text-white font-semibold">{formatRs(stock2Data.profile?.marketCap || stock2Data.profile?.market_cap)}</span>
+                          </div>
+                          <div className="flex justify-between items-center text-base">
+                            <span className="font-medium text-gray-300">Symbol:</span>
+                            <span className="text-white font-semibold">{selectedStock2.symbol}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="mt-6 p-6 bg-[#232b44] rounded-lg">
+                      <h4 className="text-xl font-bold text-white mb-4">AI Comparison Analysis</h4>
+                      <p className="text-gray-300 text-base leading-relaxed">
+                        Based on the comparison between {stock1Data.profile?.longName || selectedStock1.name} and {stock2Data.profile?.longName || selectedStock2.name}, 
+                        both stocks operate in the {stock1Data.profile?.sector === stock2Data.profile?.sector ? stock1Data.profile?.sector : `${stock1Data.profile?.sector} and ${stock2Data.profile?.sector} sectors respectively`}. 
+                        {stock1Data.profile?.marketCap && stock2Data.profile?.marketCap ? 
+                          `${stock1Data.profile.longName || selectedStock1.name} has a market capitalization of ${formatRs(stock1Data.profile.marketCap)} compared to ${formatRs(stock2Data.profile.marketCap)} for ${stock2Data.profile.longName || selectedStock2.name}. ` : 
+                          ''
+                        }
+                        Consider your investment goals, risk tolerance, and conduct further research before making investment decisions. This analysis is for informational purposes only and should not be considered as financial advice.
+                      </p>
+                    </div>
                   </div>
                 )}
 

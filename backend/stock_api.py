@@ -73,6 +73,43 @@ async def search_stock(symbol: str = Query(..., description="e.g. TCS.NS")):
     except Exception:
         return {"found": False}
 
+@router.get("/search-stocks")
+async def search_stocks(q: str = Query(..., description="Search query for stocks")):
+    """Search for stocks by name or symbol and return multiple results"""
+    try:
+        # For now, return a curated list of popular stocks that match the query
+        popular_stocks = [
+            {"symbol": "TCS.NS", "name": "Tata Consultancy Services", "exchange": "NSE"},
+            {"symbol": "INFY.NS", "name": "Infosys Ltd", "exchange": "NSE"},
+            {"symbol": "RELIANCE.NS", "name": "Reliance Industries", "exchange": "NSE"},
+            {"symbol": "HDFCBANK.NS", "name": "HDFC Bank", "exchange": "NSE"},
+            {"symbol": "SBIN.NS", "name": "State Bank of India", "exchange": "NSE"},
+            {"symbol": "ICICIBANK.NS", "name": "ICICI Bank", "exchange": "NSE"},
+            {"symbol": "HINDUNILVR.NS", "name": "Hindustan Unilever", "exchange": "NSE"},
+            {"symbol": "MARUTI.NS", "name": "Maruti Suzuki", "exchange": "NSE"},
+            {"symbol": "BAJFINANCE.NS", "name": "Bajaj Finance", "exchange": "NSE"},
+            {"symbol": "KOTAKBANK.NS", "name": "Kotak Mahindra Bank", "exchange": "NSE"},
+            {"symbol": "LT.NS", "name": "Larsen & Toubro", "exchange": "NSE"},
+            {"symbol": "ITC.NS", "name": "ITC Ltd", "exchange": "NSE"},
+            {"symbol": "AXISBANK.NS", "name": "Axis Bank", "exchange": "NSE"},
+            {"symbol": "BHARTIARTL.NS", "name": "Bharti Airtel", "exchange": "NSE"},
+            {"symbol": "WIPRO.NS", "name": "Wipro Ltd", "exchange": "NSE"},
+        ]
+
+        # Filter stocks based on query
+        query_lower = q.lower()
+        filtered_stocks = [
+            stock for stock in popular_stocks
+            if query_lower in stock["name"].lower() or query_lower in stock["symbol"].lower()
+        ]
+
+        # Return up to 8 results
+        return filtered_stocks[:8]
+
+    except Exception as e:
+        print(f"Error in search_stocks: {e}")
+        return []
+
 @router.get("/profile/{symbol}", response_model=StockProfile)
 async def get_stock_profile(symbol: str):
     try:
