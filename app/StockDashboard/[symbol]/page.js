@@ -182,12 +182,14 @@ import Navbar from "../../components/Navbar";
       if (stock1Query.length < 2) return setStock1Suggestions([]);
       const id = setTimeout(async () => {
         try {
-          const res = await fetch(`/api/stock/search?q=${encodeURIComponent(stock1Query)}`);
+          const res = await fetch(`/api/stock/search-stocks?q=${encodeURIComponent(stock1Query)}`);
           const data = await res.json();
           setStock1Suggestions(data || []);
-          setShowStock1Dropdown(true);
+          setShowStock1Dropdown(true); // Always show dropdown when searching
         } catch (e) {
+          console.error('Error fetching stock suggestions:', e);
           setStock1Suggestions([]);
+          setShowStock1Dropdown(true); // Show dropdown even on error
         }
       }, 300);
       return () => clearTimeout(id);
@@ -198,12 +200,14 @@ import Navbar from "../../components/Navbar";
       if (stock2Query.length < 2) return setStock2Suggestions([]);
       const id = setTimeout(async () => {
         try {
-          const res = await fetch(`/api/stock/search?q=${encodeURIComponent(stock2Query)}`);
+          const res = await fetch(`/api/stock/search-stocks?q=${encodeURIComponent(stock2Query)}`);
           const data = await res.json();
           setStock2Suggestions(data || []);
-          setShowStock2Dropdown(true);
+          setShowStock2Dropdown(true); // Always show dropdown when searching
         } catch (e) {
+          console.error('Error fetching stock suggestions:', e);
           setStock2Suggestions([]);
+          setShowStock2Dropdown(true); // Show dropdown even on error
         }
       }, 300);
       return () => clearTimeout(id);
@@ -212,12 +216,10 @@ import Navbar from "../../components/Navbar";
     const handleStock1Select = (s) => {
       setSelectedStock1(s);
       setStock1Query(s.name || s.symbol);
-      setShowStock1Dropdown(false);
     };
   const handleStock2Select = (s) => {
     setSelectedStock2(s);
     setStock2Query(s.name || s.symbol);
-    setShowStock2Dropdown(false);
   };
 
   const handleAddToPortfolio = async () => {
@@ -469,11 +471,11 @@ import Navbar from "../../components/Navbar";
                 <div className="grid md:grid-cols-2 gap-6 mb-6">
                   <div className="relative">
                     <label className="block text-base mb-2 text-gray-300 font-medium">First Stock</label>
-                    <input type="text" value={stock1Query} onChange={(e) => { setStock1Query(e.target.value); setSelectedStock1(null); }} onFocus={() => stock1Suggestions.length > 0 && setShowStock1Dropdown(true)} placeholder="Type to search (e.g., TCS, INFY, RELIANCE)..." className="w-full bg-[#232b44] text-white p-4 rounded-lg text-base focus:outline-none focus:ring-2 focus:ring-purple-500 placeholder-gray-400" />
+                    <input type="text" value={stock1Query} onChange={(e) => { setStock1Query(e.target.value); setSelectedStock1(null); }} onFocus={() => stock1Query.length >= 2 && setShowStock1Dropdown(true)} placeholder="Type to search (e.g., TCS, INFY, RELIANCE)..." className="w-full bg-[#232b44] text-white p-4 rounded-lg text-base focus:outline-none focus:ring-2 focus:ring-purple-500 placeholder-gray-400" />
                     {showStock1Dropdown && stock1Suggestions.length > 0 && (
                       <div className="absolute z-10 w-full mt-2 bg-[#232b44] border border-gray-600 rounded-lg shadow-xl max-h-80 overflow-y-auto">
                         {stock1Suggestions.map((s) => (
-                          <div key={s.symbol || s.code} onClick={() => handleStock1Select(s)} className="p-4 hover:bg-purple-600 cursor-pointer transition-colors border-b border-gray-700 last:border-b-0">
+                          <div key={s.symbol || s.code} onClick={() => { setShowStock1Dropdown(false); handleStock1Select(s); }} className="p-4 hover:bg-purple-600 cursor-pointer transition-colors border-b border-gray-700 last:border-b-0">
                             <div className="text-white font-medium text-sm mb-1">{s.name || s.longName || s.symbol}</div>
                             <div className="text-gray-400 text-xs">Symbol: {s.symbol || s.code}</div>
                           </div>
@@ -486,11 +488,11 @@ import Navbar from "../../components/Navbar";
 
                   <div className="relative">
                     <label className="block text-base mb-2 text-gray-300 font-medium">Second Stock</label>
-                    <input type="text" value={stock2Query} onChange={(e) => { setStock2Query(e.target.value); setSelectedStock2(null); }} onFocus={() => stock2Suggestions.length > 0 && setShowStock2Dropdown(true)} placeholder="Type to search (e.g., TCS, INFY, RELIANCE)..." className="w-full bg-[#232b44] text-white p-4 rounded-lg text-base focus:outline-none focus:ring-2 focus:ring-purple-500 placeholder-gray-400" />
+                    <input type="text" value={stock2Query} onChange={(e) => { setStock2Query(e.target.value); setSelectedStock2(null); }} onFocus={() => stock2Query.length >= 2 && setShowStock2Dropdown(true)} placeholder="Type to search (e.g., TCS, INFY, RELIANCE)..." className="w-full bg-[#232b44] text-white p-4 rounded-lg text-base focus:outline-none focus:ring-2 focus:ring-purple-500 placeholder-gray-400" />
                     {showStock2Dropdown && stock2Suggestions.length > 0 && (
                       <div className="absolute z-10 w-full mt-2 bg-[#232b44] border border-gray-600 rounded-lg shadow-xl max-h-80 overflow-y-auto">
                         {stock2Suggestions.map((s) => (
-                          <div key={s.symbol || s.code} onClick={() => handleStock2Select(s)} className="p-4 hover:bg-purple-600 cursor-pointer transition-colors border-b border-gray-700 last:border-b-0">
+                          <div key={s.symbol || s.code} onClick={() => { setShowStock2Dropdown(false); handleStock2Select(s); }} className="p-4 hover:bg-purple-600 cursor-pointer transition-colors border-b border-gray-700 last:border-b-0">
                             <div className="text-white font-medium text-sm mb-1">{s.name || s.longName || s.symbol}</div>
                             <div className="text-gray-400 text-xs">Symbol: {s.symbol || s.code}</div>
                           </div>
