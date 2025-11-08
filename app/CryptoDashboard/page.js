@@ -58,7 +58,7 @@ export default function CryptoDashboardPage() {
     <>
     <Navbar />
     <section className="relative min-h-screen bg-gradient-to-b from-[#050511] via-[#0d1020] to-[#0b0b12] py-16 text-white">
-      <div className="max-w-5xl mx-auto px-8">
+      <div className="max-w-5xl mx-auto px-8 py-5">
         {/* Title */}
         <h2 className="text-3xl md:text-4xl font-bold mb-8 text-center text-cyan-400">
           Cryptocurrency Dashboard

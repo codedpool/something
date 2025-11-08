@@ -68,9 +68,9 @@ export default function MFDashboardPage() {
     <>
     <Navbar />
     <section className="relative min-h-screen bg-gradient-to-b from-[#050511] via-[#0d1020] to-[#0b0b12] py-16 text-white">
-      <div className="max-w-5xl mx-auto px-8">
+      <div className="max-w-5xl mx-auto px-9">
         {/* Searchbar */}
-        <div className="flex justify-center mb-8 relative">
+        <div className="flex justify-center mb-8 py-9 relative">
           <input
             ref={inputRef}
             value={search}

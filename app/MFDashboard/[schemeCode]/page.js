@@ -295,7 +295,7 @@ export default function MFDetailsPage() {
         ) : (
           <>
             {/* Scheme Name Heading */}
-            <div className="mb-6">
+            <div className="mb-6 py-8">
               <h1 className="text-3xl md:text-4xl font-bold text-cyan-400 text-center">
                 Mutual Fund Dashboard
               </h1>
