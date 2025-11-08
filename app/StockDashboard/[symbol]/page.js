@@ -281,7 +281,7 @@ import Navbar from "../../components/Navbar";
     return (
       <>
       <Navbar />
-      <section className="min-h-screen py-12 px-2 bg-gradient-to-b from-[#050511] via-[#0d1020] to-[#0b0b12] text-white">
+      <section className="min-h-screen py-18 px-2 bg-gradient-to-b from-[#050511] via-[#0d1020] to-[#0b0b12] text-white">
         <div className="max-w-7xl mx-auto grid gap-6">
           {loading ? (
             <div className="flex justify-center items-center min-h-[60vh]">
@@ -289,7 +289,7 @@ import Navbar from "../../components/Navbar";
             </div>
           ) : (
             <>
-              <div className="mb-6">
+              <div className="mb-6 ">
                 <h1 className="text-3xl md:text-4xl font-bold text-cyan-400 text-center">Stock Dashboard</h1>
               </div>
 
