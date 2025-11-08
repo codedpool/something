@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
-import Groq from "groq-sdk";
+import OpenAI from "openai";
 
 export async function POST(request) {
   try {
-    if (!process.env.GROQ_API_KEY) {
-      throw new Error("GROQ_API_KEY is not configured");
+    if (!process.env.OPENROUTER_API_KEY) {
+      throw new Error("OPENROUTER_API_KEY is not configured");
     }
 
     const { prompt } = await request.json();
@@ -13,12 +13,17 @@ export async function POST(request) {
       throw new Error("No prompt provided");
     }
 
-    const groqClient = new Groq({
-      apiKey: process.env.GROQ_API_KEY,
+    const openaiClient = new OpenAI({
+      baseURL: 'https://openrouter.ai/api/v1',
+      apiKey: process.env.OPENROUTER_API_KEY,
+      defaultHeaders: {
+        'HTTP-Referer': 'https://newealth.com',
+        'X-Title': 'NewWealth AI',
+      },
     });
 
     // Log API call attempt
-    console.log("Calling GROQ API with prompt:", prompt.substring(0, 100) + "...");
+    console.log("Calling OpenRouter API with prompt:", prompt.substring(0, 100) + "...");
 
     // Set system context for financial advisor role
     const messages = [
@@ -37,14 +42,13 @@ export async function POST(request) {
 
     console.log(`Attempting chat completion with prompt:`, prompt.substring(0, 100) + "...");
     
-    const chatStream = await groqClient.chat.completions.create({
+    const chatStream = await openaiClient.chat.completions.create({
       messages: messages,
-      model: "llama-3.3-70b-versatile",
+      model: "google/gemini-2.5-flash",
       temperature: 1,
       max_tokens: 1024,
       top_p: 1,
       stream: true,
-      stop: null
     });
     
     console.log("Chat stream created successfully");
@@ -83,7 +87,7 @@ export async function POST(request) {
       stack: error.stack,
     });
 
-    if (!process.env.GROQ_API_KEY) {
+    if (!process.env.OPENROUTER_API_KEY) {
       return NextResponse.json(
         { error: "Chat service is not properly configured" },
         { status: 503 }
