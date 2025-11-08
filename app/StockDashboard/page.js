@@ -1,6 +1,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
+import Navbar from "../components/Navbar";
 
 const stocksPerPage = 9;
 
@@ -70,6 +71,8 @@ export default function StockDashboard() {
   const currentStocks = stocks.slice((page - 1) * stocksPerPage, page * stocksPerPage);
 
   return (
+    <>
+    <Navbar />
     <section className="py-16 px-5 min-h-[60vh] bg-gradient-to-b from-[#050511] via-[#0d1020] to-[#0b0b12]">
       <div className="max-w-5xl mx-auto">
         <h2 className="text-3xl font-bold mb-6 text-white text-center">View Stocks</h2>
@@ -106,5 +109,6 @@ export default function StockDashboard() {
         </div>
       </div>
     </section>
+    </>
   );
 }

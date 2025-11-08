@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState, useRef } from "react";
 import Link from "next/link";
+import Navbar from "../components/Navbar";
 
 // Debounce utility
 const useDebounce = (value, delay) => {
@@ -64,6 +65,8 @@ export default function MFDashboardPage() {
   };
 
   return (
+    <>
+    <Navbar />
     <section className="relative min-h-screen bg-gradient-to-b from-[#050511] via-[#0d1020] to-[#0b0b12] py-16 text-white">
       <div className="max-w-5xl mx-auto px-8">
         {/* Searchbar */}
@@ -122,5 +125,6 @@ export default function MFDashboardPage() {
       </div>
       <div className="absolute left-0 right-0 bottom-0 h-48 bg-gradient-to-t from-[#0b0710]/80 to-transparent" />
     </section>
+    </>
   );
 }

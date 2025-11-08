@@ -138,7 +138,7 @@ const Chatbot = ({ selectedFund }) => {
           </svg>
         </button>
       ) : (
-        <div className="bg-[#181f31] rounded-xl shadow-lg w-96 h-[600px] flex flex-col border border-gray-700">
+        <div className="bg-[#181f31] rounded-xl shadow-lg w-96 h-[49..0px] flex flex-col border border-gray-700">
           <div className="flex justify-between items-center p-4 bg-gradient-to-r from-[#0d1020] to-[#0b0b12] rounded-t-xl border-b border-gray-700">
             <h3 className="text-white font-semibold">Investment Assistant</h3>
             <button

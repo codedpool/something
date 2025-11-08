@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useUser } from "@clerk/nextjs";
 import AIDostModal from "../components/AIDostModal";
 import AIReportModal from "../components/AIReportModal";
+import Navbar from "../components/Navbar";
 
 export default function PortfolioPage() {
   const { user, isSignedIn } = useUser();
