@@ -15,10 +15,10 @@ export default function Home() {
   return (
     <main className="relative min-h-screen">
       <Navbar />
-      <Hero />
+      <CallToAction />
       <FeaturesSectionDemo />
       <Testimonials />
-      <CallToAction />
+      <Hero />
       <Footer />
 
       {/* Chatbot floating button */}

@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 
 import starsBg from "@/assets/stars.png"; // star background
-import Link from "next/link";
+
 import { SignedIn, SignedOut, SignUpButton } from "@clerk/nextjs";
 
 export default function Hero() {
@@ -48,37 +48,40 @@ export default function Hero() {
           </span>
         </h1>
 
-        <p className="text-lg text-gray-300 max-w-2xl mb-8 mt-6">
-          Unleash your financial potential with WealthPulse
-          <br />
-          <span className="italic">
-            your AI-powered investment companion.
-          </span>
+       
+
+        <p className="text-lg md:text-xl text-white/70 mt-5 max-w-2xl mx-auto">
+          Real-time AI insights, smart investing tools, and personalized learning,
+          all in one seamless platform to help you invest confidently and grow smarter.
         </p>
 
         {/* Call to Action */}
-        <div>
+       
+
+<div className="flex justify-center mt-8">
           <SignedOut>
             <SignUpButton mode="redirect">
-              <button className="inline-flex items-center gap-3 bg-gradient-to-r from-[#9b5cff] to-[#f08bd6] text-white font-semibold px-6 py-3 rounded-full shadow-lg hover:scale-[1.02] transition-transform">
+              <button
+                className="relative inline-flex items-center justify-center px-8 py-3 text-lg font-medium text-white rounded-full
+                         bg-purple-600 hover:bg-purple-700
+                         transition-all duration-300 shadow-[0_0_25px_rgba(168,85,247,0.4)]
+                         hover:shadow-[0_0_40px_rgba(168,85,247,0.6)] active:scale-95"
+              >
                 Get Started
-                <span className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center">
-                  →
-                </span>
               </button>
             </SignUpButton>
           </SignedOut>
 
           <SignedIn>
-            <Link
+            <a
               href="/Portfolio"
-              className="inline-flex items-center gap-3 bg-gradient-to-r from-[#9b5cff] to-[#f08bd6] text-white font-semibold px-6 py-3 rounded-full shadow-lg hover:scale-[1.02] transition-transform"
+              className="relative inline-flex items-center justify-center px-8 py-3 text-lg font-medium text-white rounded-full
+                         bg-purple-600 hover:bg-purple-700
+                         transition-all duration-300 shadow-[0_0_25px_rgba(168,85,247,0.4)]
+                         hover:shadow-[0_0_40px_rgba(168,85,247,0.6)] active:scale-95"
             >
               Get Started
-              <span className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center">
-                →
-              </span>
-            </Link>
+            </a>
           </SignedIn>
         </div>
 

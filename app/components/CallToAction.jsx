@@ -4,6 +4,7 @@ import starsBg from "@/assets/stars.png";
 import gridLines from "@/assets/grid-lines.png";
 import { motion, useMotionTemplate, useMotionValue, useScroll, useTransform } from "framer-motion";
 import { useEffect, useRef } from "react";
+import Link from "next/link";
 
 const useRelativeMousePosition = (to) => {
   const mouseX = useMotionValue(0);
@@ -41,79 +42,85 @@ export const CallToAction = () => {
 
   return (
     <section
-      ref={sectionRef}
-      className="min-h-screen flex items-center justify-center bg-black text-white"
+  ref={sectionRef}
+  className="min-h-screen flex items-center justify-center bg-black text-white pt-16 md:pt-20" // slightly less top padding
+>
+  <div className="container px-4">
+    <motion.div
+      ref={borderedDivRef}
+      className="relative cursor-grab border border-white/15 py-24 rounded-xl overflow-hidden group max-w-10xl mx-auto w-full" // increased max-width
+      animate={{
+        backgroundPositionX: starsBg.width,
+      }}
+      transition={{
+        duration: 40,
+        ease: "linear",
+        repeat: Infinity,
+      }}
+      style={{
+        backgroundPositionY,
+        backgroundImage: `url(${starsBg.src})`,
+      }}
     >
-      <div className="container px-4">
-        <motion.div
-          ref={borderedDivRef}
-          className="relative cursor-grab border border-white/15 py-24 rounded-xl overflow-hidden group max-w-6xl mx-auto w-full"
-          animate={{
-            backgroundPositionX: starsBg.width,
-          }}
-          transition={{
-            duration: 40,
-            ease: "linear",
-            repeat: Infinity,
-          }}
-          style={{
-            backgroundPositionY,
-            backgroundImage: `url(${starsBg.src})`,
-          }}
-        >
-          {/* Base layer */}
-          <div
-            className="absolute inset-0 bg-[rgb(74,32,138)] bg-blend-overlay [mask-image:radial-gradient(50%_50%_at_50%_35%,black,transparent)] group-hover:opacity-0 transition duration-700"
-            style={{
-              backgroundImage: `url(${gridLines.src})`,
-            }}
-          ></div>
+      {/* Base layer */}
+      <div
+        className="absolute inset-0 bg-[rgb(74,32,138)] bg-blend-overlay [mask-image:radial-gradient(50%_50%_at_50%_35%,black,transparent)] group-hover:opacity-0 transition duration-700"
+        style={{
+          backgroundImage: `url(${gridLines.src})`,
+        }}
+      ></div>
 
-          {/* Hover layer */}
-          <motion.div
-            className="absolute inset-0 bg-[rgb(74,32,138)] bg-blend-overlay opacity-0 group-hover:opacity-100"
-            style={{
-              maskImage: imageMask,
-              backgroundImage: `url(${gridLines.src})`,
-            }}
-          ></motion.div>
+      {/* Hover layer */}
+      <motion.div
+        className="absolute inset-0 bg-[rgb(74,32,138)] bg-blend-overlay opacity-0 group-hover:opacity-100"
+        style={{
+          maskImage: imageMask,
+          backgroundImage: `url(${gridLines.src})`,
+        }}
+      ></motion.div>
 
-          {/* Text + Button */}
-          <div className="relative text-center">
-            <h2 className="text-5xl md:text-6xl font-medium tracking-tighter max-w-2xl mx-auto">
-              Empower Your Financial Future with WealthPulse
-            </h2>
-            <p className="text-lg md:text-xl text-white/70 mt-5 max-w-lg mx-auto">
-              Real-time AI insights, smart investing tools, and personalized learning,
-              all in one seamless platform to help you invest confidently and grow smarter.
-            </p>
+      {/* Text + Button */}
+      <div className="relative text-center">
+        <h2 className="text-5xl md:text-6xl font-medium tracking-tighter max-w-3xl mx-auto">
+          Empower Your Financial Future with WealthPulse
+        </h2>
+ <p className="text-lg text-gray-300 max-w-2xl mb-8 mt-6 mx-auto text-center">
+  Unleash your financial potential with WealthPulse
+  <br />
+  <span className="italic">
+    your AI-powered investment companion.
+  </span>
+</p>
 
-            <div className="flex justify-center mt-8">
-              <SignedOut>
-                <SignUpButton mode="redirect">
-                  <button
-                    className="relative inline-flex items-center justify-center px-8 py-3 text-lg font-medium text-white rounded-full
-                             bg-purple-600 hover:bg-purple-700
-                             transition-all duration-300 shadow-[0_0_25px_rgba(168,85,247,0.4)]
-                             hover:shadow-[0_0_40px_rgba(168,85,247,0.6)] active:scale-95"
-                  >
-                    Get Started
-                  </button>
-                </SignUpButton>
-              </SignedOut>
 
-              <SignedIn>
-                <a href="/Portfolio" className="relative inline-flex items-center justify-center px-8 py-3 text-lg font-medium text-white rounded-full
-                             bg-purple-600 hover:bg-purple-700
-                             transition-all duration-300 shadow-[0_0_25px_rgba(168,85,247,0.4)]
-                             hover:shadow-[0_0_40px_rgba(168,85,247,0.6)] active:scale-95">
-                  Get Started
-                </a>
-              </SignedIn>
-            </div>
-          </div>
-        </motion.div>
+         <div>
+          <SignedOut>
+            <SignUpButton mode="redirect">
+              <button className="inline-flex items-center gap-3 bg-gradient-to-r from-[#9b5cff] to-[#f08bd6] text-white font-semibold px-6 py-3 rounded-full shadow-lg hover:scale-[1.02] transition-transform">
+                Get Started
+                <span className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center">
+                  →
+                </span>
+              </button>
+            </SignUpButton>
+          </SignedOut>
+
+          <SignedIn>
+            <Link
+              href="/Portfolio"
+              className="inline-flex items-center gap-3 bg-gradient-to-r from-[#9b5cff] to-[#f08bd6] text-white font-semibold px-6 py-3 rounded-full shadow-lg hover:scale-[1.02] transition-transform"
+            >
+              Get Started
+              <span className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center">
+                →
+              </span>
+            </Link>
+          </SignedIn>
+        </div>
       </div>
-    </section>
+    </motion.div>
+  </div>
+</section>
+
   );
 };
