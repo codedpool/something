@@ -22,6 +22,7 @@ export default function Navbar() {
     { name: "StockDashboard", href: "/StockDashboard" },
     { name: "MFDashboard", href: "/MFDashboard" },
     { name: "CryptoDashboard", href: "/CryptoDashboard" },
+    { name: "Courses", href: "/Courses" },
   ];
 
   return (
