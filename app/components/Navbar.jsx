@@ -2,13 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import {
-  SignedIn,
-  SignedOut,
-  SignInButton,
-  SignUpButton,
-  UserButton,
-} from "@clerk/nextjs";
+import useUser, { loginHref, logoutHref } from "@/lib/authClient";
 
 export default function Navbar() {
   const [openNavigation, setOpenNavigation] = useState(false);
@@ -49,41 +43,37 @@ export default function Navbar() {
               {link.name}
             </Link>
           ))}
-
-          <SignedIn>
-            <Link
-              href="/Portfolio"
-              className="text-sm text-purple-400 hover:text-purple-300 transition-colors"
-            >
-              My Portfolio
-            </Link>
-          </SignedIn>
+          {(() => {
+            const { user, isSignedIn } = useUser();
+            return isSignedIn ? (
+              <Link href="/Portfolio" className="text-sm text-purple-400 hover:text-purple-300 transition-colors">
+                My Portfolio
+              </Link>
+            ) : null;
+          })()}
         </nav>
 
         {/* Auth Buttons */}
         <div className="hidden lg:flex items-center gap-3">
-          <SignedIn>
-            <UserButton
-              afterSignOutUrl="/"
-              appearance={{
-                elements: {
-                  avatarBox: "w-9 h-9",
-                },
-              }}
-            />
-          </SignedIn>
-          <SignedOut>
-            <SignInButton mode="modal">
-              <button className="text-sm text-white/90 bg-white/5 hover:bg-white/10 px-4 py-2 rounded-full border border-white/10 transition-colors">
-                Sign in
-              </button>
-            </SignInButton>
-            <SignUpButton mode="modal">
-              <button className="text-sm font-semibold bg-gradient-to-r from-[#9b5cff] to-[#f08bd6] text-white px-4 py-2 rounded-full shadow hover:scale-[1.02] transition-transform">
-                Sign up
-              </button>
-            </SignUpButton>
-          </SignedOut>
+          {(() => {
+            const { user, isSignedIn } = useUser();
+            if (isSignedIn && user) {
+              return (
+                <div className="flex items-center gap-3">
+                  <img src={user.picture || '/vercel.svg'} alt={user.name || 'user'} className="w-9 h-9 rounded-full object-cover" />
+                  <span className="text-sm text-gray-200">{user.name || user.email}</span>
+                  <a href={logoutHref} className="text-sm text-white/90 bg-white/5 hover:bg-white/10 px-4 py-2 rounded-full border border-white/10 transition-colors">Sign out</a>
+                </div>
+              );
+            }
+
+            return (
+              <div className="flex items-center gap-3">
+                <a href={loginHref} className="text-sm text-white/90 bg-white/5 hover:bg-white/10 px-4 py-2 rounded-full border border-white/10 transition-colors">Sign in</a>
+                <a href={`${loginHref}?screen_hint=signup`} className="text-sm font-semibold bg-gradient-to-r from-[#9b5cff] to-[#f08bd6] text-white px-4 py-2 rounded-full shadow hover:scale-[1.02] transition-transform">Sign up</a>
+              </div>
+            );
+          })()}
         </div>
 
         {/* Mobile Menu Toggle */}
@@ -112,7 +102,7 @@ export default function Navbar() {
       </div>
 
       {/* Mobile Nav Drawer */}
-      {openNavigation && (
+          {openNavigation && (
         <nav className="lg:hidden fixed top-[70px] left-0 right-0 bg-[#0b0b12] border-t border-white/10 backdrop-blur-md flex flex-col items-center py-6 space-y-6 z-40">
           {links.map((link) => (
             <Link
@@ -124,29 +114,17 @@ export default function Navbar() {
               {link.name}
             </Link>
           ))}
-
-          <SignedIn>
-            <Link
-              href="/Portfolio"
-              onClick={handleNavClick}
-              className="text-purple-400 hover:text-purple-300 text-lg"
-            >
-              My Portfolio
-            </Link>
-          </SignedIn>
-
-          <SignedOut>
-            <SignInButton mode="modal">
-              <button className="text-sm text-white/90 bg-white/5 hover:bg-white/10 px-4 py-2 rounded-full border border-white/10 transition-colors">
-                Sign in
-              </button>
-            </SignInButton>
-            <SignUpButton mode="modal">
-              <button className="text-sm font-semibold bg-gradient-to-r from-[#9b5cff] to-[#f08bd6] text-white px-4 py-2 rounded-full shadow hover:scale-[1.02] transition-transform">
-                Sign up
-              </button>
-            </SignUpButton>
-          </SignedOut>
+              {(() => {
+                const { user, isSignedIn } = useUser();
+                return isSignedIn ? (
+                  <Link href="/Portfolio" onClick={handleNavClick} className="text-purple-400 hover:text-purple-300 text-lg">My Portfolio</Link>
+                ) : (
+                  <div className="flex flex-col gap-3 items-center">
+                    <a href={loginHref} className="text-sm text-white/90 bg-white/5 hover:bg-white/10 px-4 py-2 rounded-full border border-white/10 transition-colors">Sign in</a>
+                    <a href={`${loginHref}?screen_hint=signup`} className="text-sm font-semibold bg-gradient-to-r from-[#9b5cff] to-[#f08bd6] text-white px-4 py-2 rounded-full shadow hover:scale-[1.02] transition-transform">Sign up</a>
+                  </div>
+                );
+              })()}
         </nav>
       )}
     </header>

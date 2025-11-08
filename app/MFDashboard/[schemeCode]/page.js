@@ -3,7 +3,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { useUser } from "@clerk/nextjs";
+import useUser from "@/lib/authClient";
 import {
   LineChart,
   Line,
@@ -140,7 +140,7 @@ export default function MFDetailsPage() {
   // AI Report Modal state
   const [showAIReport, setShowAIReport] = useState(false);
   const [addingToPortfolio, setAddingToPortfolio] = useState(false);
-  const { user } = useUser();
+  const { user, isSignedIn } = useUser();
 
   useEffect(() => {
     setLoading(true);
@@ -223,7 +223,7 @@ export default function MFDetailsPage() {
   };
 
   const handleAddToPortfolio = async () => {
-    if (!user) {
+    if (!isSignedIn || !user) {
       alert("Please sign in to add items to your portfolio");
       return;
     }
@@ -231,14 +231,14 @@ export default function MFDetailsPage() {
     try {
       setAddingToPortfolio(true);
       console.log('Adding to portfolio:', {
-        userId: user.id,
+        userId: user.sub,
         schemeCode,
         name: meta?.scheme_name || meta?.schemeName || schemeCode
       });
 
       // Using Next.js API route instead of calling FastAPI directly
-      const userId = user.id.replace('user_', ''); // Remove 'user_' prefix if present
-      const response = await fetch(`/api/portfolio/add/${userId}`, {
+  const userId = encodeURIComponent(user.sub || '');
+  const response = await fetch(`/api/portfolio/add/${userId}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

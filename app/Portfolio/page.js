@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useUser } from "@clerk/nextjs";
+import useUser from "@/lib/authClient";
 import AIDostModal from "../components/AIDostModal";
 import AIReportModal from "../components/AIReportModal";
 import Navbar from "../components/Navbar";
@@ -63,8 +63,8 @@ export default function PortfolioPage() {
       }
 
       try {
-        const userId = user.id.replace("user_", "");
-        const response = await fetch(`/api/portfolio/${userId}`);
+  const userId = encodeURIComponent(user.sub || "");
+  const response = await fetch(`/api/portfolio/${userId}`);
 
         if (!response.ok) {
           throw new Error("Failed to fetch portfolio");
@@ -118,7 +118,7 @@ export default function PortfolioPage() {
     }
 
     try {
-      const userId = user.id.replace("user_", "");
+      const userId = encodeURIComponent(user.sub || "");
       const response = await fetch(`/api/portfolio/${userId}/${itemId}`, {
         method: "DELETE",
       });

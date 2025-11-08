@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { useUser } from "@clerk/nextjs";
+import useUser from "@/lib/authClient";
 import StockAIDostModal from "../../components/StockAIDostModal";
 import StockAIReportModal from "../../components/StockAIReportModal";
 import Chatbot from "../../components/Chatbot";
@@ -129,8 +129,8 @@ import Navbar from "../../components/Navbar";
     // AI Modals
     const [showAIDost, setShowAIDost] = useState(false);
     const [showAIReport, setShowAIReport] = useState(false);
-    const [addingToPortfolio, setAddingToPortfolio] = useState(false);
-    const { user } = useUser();
+  const [addingToPortfolio, setAddingToPortfolio] = useState(false);
+  const { user, isSignedIn } = useUser();
 
     useEffect(() => {
       setLoading(true);
@@ -221,7 +221,7 @@ import Navbar from "../../components/Navbar";
   };
 
   const handleAddToPortfolio = async () => {
-    if (!user) {
+    if (!isSignedIn || !user) {
       alert("Please sign in to add items to your portfolio");
       return;
     }
@@ -229,14 +229,14 @@ import Navbar from "../../components/Navbar";
     try {
       setAddingToPortfolio(true);
       console.log('Adding to portfolio:', {
-        userId: user.id,
+        userId: user.sub,
         symbol,
         name: profile?.longName || symbol
       });
 
       // Using Next.js API route instead of calling FastAPI directly
-      const userId = user.id.replace('user_', ''); // Remove 'user_' prefix if present
-      const response = await fetch(`/api/portfolio/add/${userId}`, {
+  const userId = encodeURIComponent(user.sub || '');
+  const response = await fetch(`/api/portfolio/add/${userId}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

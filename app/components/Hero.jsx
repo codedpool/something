@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 
 import starsBg from "@/assets/stars.png"; // star background
 
-import { SignedIn, SignedOut, SignUpButton } from "@clerk/nextjs";
+import useUser, { loginHref } from "@/lib/authClient";
 
 export default function Hero() {
   return (
@@ -58,31 +58,15 @@ export default function Hero() {
         {/* Call to Action */}
        
 
-<div className="flex justify-center mt-8">
-          <SignedOut>
-            <SignUpButton mode="redirect">
-              <button
-                className="relative inline-flex items-center justify-center px-8 py-3 text-lg font-medium text-white rounded-full
-                         bg-purple-600 hover:bg-purple-700
-                         transition-all duration-300 shadow-[0_0_25px_rgba(168,85,247,0.4)]
-                         hover:shadow-[0_0_40px_rgba(168,85,247,0.6)] active:scale-95"
-              >
-                Get Started
-              </button>
-            </SignUpButton>
-          </SignedOut>
-
-          <SignedIn>
-            <a
-              href="/Portfolio"
-              className="relative inline-flex items-center justify-center px-8 py-3 text-lg font-medium text-white rounded-full
-                         bg-purple-600 hover:bg-purple-700
-                         transition-all duration-300 shadow-[0_0_25px_rgba(168,85,247,0.4)]
-                         hover:shadow-[0_0_40px_rgba(168,85,247,0.6)] active:scale-95"
-            >
-              Get Started
-            </a>
-          </SignedIn>
+        <div className="flex justify-center mt-8">
+          {(() => {
+            const { isSignedIn } = useUser();
+            return isSignedIn ? (
+              <a href="/Portfolio" className="relative inline-flex items-center justify-center px-8 py-3 text-lg font-medium text-white rounded-full bg-purple-600 hover:bg-purple-700 transition-all duration-300 shadow-[0_0_25px_rgba(168,85,247,0.4)] hover:shadow-[0_0_40px_rgba(168,85,247,0.6)] active:scale-95">Get Started</a>
+            ) : (
+              <a href={`${loginHref}?screen_hint=signup`} className="relative inline-flex items-center justify-center px-8 py-3 text-lg font-medium text-white rounded-full bg-purple-600 hover:bg-purple-700 transition-all duration-300 shadow-[0_0_25px_rgba(168,85,247,0.4)] hover:shadow-[0_0_40px_rgba(168,85,247,0.6)] active:scale-95">Get Started</a>
+            );
+          })()}
         </div>
 
         {/* Background Glow */}
