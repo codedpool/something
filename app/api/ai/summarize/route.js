@@ -1,8 +1,13 @@
-import { Groq } from "groq-sdk";
+import OpenAI from "openai";
 import { NextResponse } from "next/server";
 
-const groq = new Groq({
-  apiKey: process.env.GROQ_API_KEY,
+const openai = new OpenAI({
+  baseURL: 'https://openrouter.ai/api/v1',
+  apiKey: process.env.OPENROUTER_API_KEY,
+  defaultHeaders: {
+    'HTTP-Referer': 'https://newealth.com',
+    'X-Title': 'NewWealth AI',
+  },
 });
 
 export async function POST(request) {
@@ -114,19 +119,18 @@ Fund Data:
 ${fundInfo}`;
     }
 
-    const chatCompletion = await groq.chat.completions.create({
+    const chatCompletion = await openai.chat.completions.create({
       messages: [
         {
           role: "user",
           content: prompt,
         },
       ],
-      model: "llama-3.3-70b-versatile",
+      model: "google/gemini-2.5-flash",
       temperature: 0.8,
-      max_completion_tokens: 1024,
+      max_tokens: 1024,
       top_p: 1,
       stream: true,
-      stop: null,
     });
 
     // Create a readable stream for the response
