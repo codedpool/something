@@ -3,6 +3,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import Navbar from "../components/Navbar";
+import Chatbot from "../components/Chatbot";
 
 // Debounce utility
 const useDebounce = (value, delay) => {
@@ -124,6 +125,7 @@ export default function MFDashboardPage() {
         )}
       </div>
       <div className="absolute left-0 right-0 bottom-0 h-48 bg-gradient-to-t from-[#0b0710]/80 to-transparent" />
+      <Chatbot />
     </section>
     </>
   );

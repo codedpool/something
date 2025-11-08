@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import Navbar from "../components/Navbar";
+import Chatbot from "../components/Chatbot";
 
 const stocksPerPage = 9;
 
@@ -109,6 +110,7 @@ export default function StockDashboard() {
         </div>
       </div>
     </section>
+    <Chatbot />
     </>
   );
 }
