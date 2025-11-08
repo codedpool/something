@@ -1,6 +1,6 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import ClerkProviderWrapper from "./components/ClerkProviderWrapper";
+import Auth0ProviderWrapper from "./components/Auth0ProviderWrapper";
 
 
 const geistSans = Geist({
@@ -24,9 +24,9 @@ export default function RootLayout({ children }) {
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <ClerkProviderWrapper>
+        <Auth0ProviderWrapper>
           {children}
-        </ClerkProviderWrapper>
+        </Auth0ProviderWrapper>
       </body>
     </html>
   );

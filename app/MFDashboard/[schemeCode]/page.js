@@ -3,7 +3,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { useUser } from "@clerk/nextjs";
+import useUser from "@/lib/authClient";
 import {
   LineChart,
   Line,
@@ -133,6 +133,9 @@ export default function MFDetailsPage() {
   const [showFund2Dropdown, setShowFund2Dropdown] = useState(false);
   const [selectedFund1, setSelectedFund1] = useState(null);
   const [selectedFund2, setSelectedFund2] = useState(null);
+  const [fund1Data, setFund1Data] = useState(null);
+  const [fund2Data, setFund2Data] = useState(null);
+  const [showComparison, setShowComparison] = useState(false);
   
   // AI Dost Modal state
   const [showAIDost, setShowAIDost] = useState(false);
@@ -140,7 +143,7 @@ export default function MFDetailsPage() {
   // AI Report Modal state
   const [showAIReport, setShowAIReport] = useState(false);
   const [addingToPortfolio, setAddingToPortfolio] = useState(false);
-  const { user } = useUser();
+  const { user, isSignedIn } = useUser();
 
   useEffect(() => {
     setLoading(true);
@@ -165,7 +168,7 @@ export default function MFDetailsPage() {
 
   // Debounced search for fund 1
   useEffect(() => {
-    if (fund1Query.length < 3) {
+    if (fund1Query.length < 1) {
       setFund1Suggestions([]);
       setShowFund1Dropdown(false);
       return;
@@ -177,9 +180,11 @@ export default function MFDetailsPage() {
         const data = await response.json();
         const suggestions = Object.entries(data).map(([code, name]) => ({ code, name })).slice(0, 10);
         setFund1Suggestions(suggestions);
-        setShowFund1Dropdown(suggestions.length > 0);
+        setShowFund1Dropdown(true); // Always show dropdown when searching
       } catch (error) {
         console.error('Error fetching fund suggestions:', error);
+        setFund1Suggestions([]);
+        setShowFund1Dropdown(true); // Show dropdown even on error so user sees "No results found"
       }
     }, 300);
 
@@ -188,7 +193,7 @@ export default function MFDetailsPage() {
 
   // Debounced search for fund 2
   useEffect(() => {
-    if (fund2Query.length < 3) {
+    if (fund2Query.length < 1) {
       setFund2Suggestions([]);
       setShowFund2Dropdown(false);
       return;
@@ -200,14 +205,44 @@ export default function MFDetailsPage() {
         const data = await response.json();
         const suggestions = Object.entries(data).map(([code, name]) => ({ code, name })).slice(0, 10);
         setFund2Suggestions(suggestions);
-        setShowFund2Dropdown(suggestions.length > 0);
+        setShowFund2Dropdown(true); // Always show dropdown when searching
       } catch (error) {
         console.error('Error fetching fund suggestions:', error);
+        setFund2Suggestions([]);
+        setShowFund2Dropdown(true); // Show dropdown even on error so user sees "No results found"
       }
     }, 300);
 
     return () => clearTimeout(timeoutId);
   }, [fund2Query]);
+
+  // Fetch data for selected fund 1
+  useEffect(() => {
+    if (!selectedFund1) return;
+    (async () => {
+      try {
+        const res = await fetch(`/api/mutual/scheme-details/${selectedFund1.code}`);
+        const data = await res.json();
+        setFund1Data({ meta: data });
+      } catch (e) {
+        console.error(e);
+      }
+    })();
+  }, [selectedFund1]);
+
+  // Fetch data for selected fund 2
+  useEffect(() => {
+    if (!selectedFund2) return;
+    (async () => {
+      try {
+        const res = await fetch(`/api/mutual/scheme-details/${selectedFund2.code}`);
+        const data = await res.json();
+        setFund2Data({ meta: data });
+      } catch (e) {
+        console.error(e);
+      }
+    })();
+  }, [selectedFund2]);
 
   // Handle fund selection
   const handleFund1Select = (fund) => {
@@ -223,7 +258,7 @@ export default function MFDetailsPage() {
   };
 
   const handleAddToPortfolio = async () => {
-    if (!user) {
+    if (!isSignedIn || !user) {
       alert("Please sign in to add items to your portfolio");
       return;
     }
@@ -231,14 +266,14 @@ export default function MFDetailsPage() {
     try {
       setAddingToPortfolio(true);
       console.log('Adding to portfolio:', {
-        userId: user.id,
+        userId: user.sub,
         schemeCode,
         name: meta?.scheme_name || meta?.schemeName || schemeCode
       });
 
       // Using Next.js API route instead of calling FastAPI directly
-      const userId = user.id.replace('user_', ''); // Remove 'user_' prefix if present
-      const response = await fetch(`/api/portfolio/add/${userId}`, {
+  const userId = encodeURIComponent(user.sub || '');
+  const response = await fetch(`/api/portfolio/add/${userId}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -641,7 +676,7 @@ export default function MFDetailsPage() {
                       setFund1Query(e.target.value);
                       setSelectedFund1(null);
                     }}
-                    onFocus={() => fund1Suggestions.length > 0 && setShowFund1Dropdown(true)}
+                    onFocus={() => fund1Query.length >= 1 && setShowFund1Dropdown(true)}
                     placeholder="Type to search (e.g., SBI, HDFC, ICICI)..."
                     className="w-full bg-[#232b44] text-white p-4 rounded-lg text-base focus:outline-none focus:ring-2 focus:ring-purple-500 placeholder-gray-400"
                   />
@@ -665,7 +700,7 @@ export default function MFDetailsPage() {
                       <div className="text-gray-400 text-xs mt-1">Code: {selectedFund1.code}</div>
                     </div>
                   )}
-                  <p className="text-xs text-gray-400 mt-2 italic">Type at least 3 characters to search</p>
+                  <p className="text-xs text-gray-400 mt-2 italic">Type any letter to search</p>
                 </div>
 
                 {/* Fund 2 Search */}
@@ -678,7 +713,7 @@ export default function MFDetailsPage() {
                       setFund2Query(e.target.value);
                       setSelectedFund2(null);
                     }}
-                    onFocus={() => fund2Suggestions.length > 0 && setShowFund2Dropdown(true)}
+                    onFocus={() => fund2Query.length >= 1 && setShowFund2Dropdown(true)}
                     placeholder="Type to search (e.g., SBI, HDFC, ICICI)..."
                     className="w-full bg-[#232b44] text-white p-4 rounded-lg text-base focus:outline-none focus:ring-2 focus:ring-purple-500 placeholder-gray-400"
                   />
@@ -702,7 +737,7 @@ export default function MFDetailsPage() {
                       <div className="text-gray-400 text-xs mt-1">Code: {selectedFund2.code}</div>
                     </div>
                   )}
-                  <p className="text-xs text-gray-400 mt-2 italic">Type at least 3 characters to search</p>
+                  <p className="text-xs text-gray-400 mt-2 italic">Type any letter to search</p>
                 </div>
               </div>
 
@@ -710,18 +745,77 @@ export default function MFDetailsPage() {
               {selectedFund1 && selectedFund2 && (
                 <div className="text-center">
                   <button 
-                    onClick={() => {
-                      // Navigate to comparison page or show comparison
-                      window.open(`/MFDashboard/${selectedFund1.code}`, '_blank');
-                      window.open(`/MFDashboard/${selectedFund2.code}`, '_blank');
-                    }}
+                    onClick={() => setShowComparison(true)}
                     className="bg-gradient-to-r from-purple-600 to-cyan-500 hover:from-purple-700 hover:to-cyan-600 text-white px-8 py-4 rounded-lg text-base font-bold transition-all transform hover:scale-105"
                   >
-                    Compare These Funds →
+                    Compare Funds
                   </button>
                   <p className="text-gray-400 text-sm mt-3">
-                    Click to open both fund dashboards side by side
+                    Click to generate comparison report
                   </p>
+                </div>
+              )}
+
+              {showComparison && fund1Data && fund2Data && (
+                <div className="mt-8 bg-[#181f31] rounded-xl p-8 shadow-lg">
+                  <h3 className="text-2xl font-bold mb-6 text-white">Fund Comparison</h3>
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <div className="bg-[#232b44] rounded-lg p-6">
+                      <h4 className="text-xl font-bold text-white mb-4">{fund1Data.meta?.scheme_name || fund1Data.meta?.schemeName || selectedFund1.name}</h4>
+                      <div className="space-y-3">
+                        <div className="flex justify-between items-center text-base">
+                          <span className="font-medium text-gray-300">Fund House:</span>
+                          <span className="text-white font-semibold">{fund1Data.meta?.fund_house || 'Not Available'}</span>
+                        </div>
+                        <div className="flex justify-between items-center text-base">
+                          <span className="font-medium text-gray-300">Scheme Type:</span>
+                          <span className="text-white font-semibold">{fund1Data.meta?.scheme_type || 'Not Available'}</span>
+                        </div>
+                        <div className="flex justify-between items-center text-base">
+                          <span className="font-medium text-gray-300">Scheme Category:</span>
+                          <span className="text-white font-semibold">{fund1Data.meta?.scheme_category || 'Not Available'}</span>
+                        </div>
+                        <div className="flex justify-between items-center text-base">
+                          <span className="font-medium text-gray-300">Code:</span>
+                          <span className="text-white font-semibold">{selectedFund1.code}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="bg-[#232b44] rounded-lg p-6">
+                      <h4 className="text-xl font-bold text-white mb-4">{fund2Data.meta?.scheme_name || fund2Data.meta?.schemeName || selectedFund2.name}</h4>
+                      <div className="space-y-3">
+                        <div className="flex justify-between items-center text-base">
+                          <span className="font-medium text-gray-300">Fund House:</span>
+                          <span className="text-white font-semibold">{fund2Data.meta?.fund_house || 'Not Available'}</span>
+                        </div>
+                        <div className="flex justify-between items-center text-base">
+                          <span className="font-medium text-gray-300">Scheme Type:</span>
+                          <span className="text-white font-semibold">{fund2Data.meta?.scheme_type || 'Not Available'}</span>
+                        </div>
+                        <div className="flex justify-between items-center text-base">
+                          <span className="font-medium text-gray-300">Scheme Category:</span>
+                          <span className="text-white font-semibold">{fund2Data.meta?.scheme_category || 'Not Available'}</span>
+                        </div>
+                        <div className="flex justify-between items-center text-base">
+                          <span className="font-medium text-gray-300">Code:</span>
+                          <span className="text-white font-semibold">{selectedFund2.code}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="mt-6 p-6 bg-[#232b44] rounded-lg">
+                    <h4 className="text-xl font-bold text-white mb-4">AI Comparison Analysis</h4>
+                    <p className="text-gray-300 text-base leading-relaxed">
+                      Based on the comparison between {fund1Data.meta?.scheme_name || selectedFund1.name} and {fund2Data.meta?.scheme_name || selectedFund2.name}, 
+                      both funds are managed by {fund1Data.meta?.fund_house === fund2Data.meta?.fund_house ? 
+                        fund1Data.meta?.fund_house : 
+                        `${fund1Data.meta?.fund_house} and ${fund2Data.meta?.fund_house} respectively`}. 
+                      {fund1Data.meta?.scheme_type === fund2Data.meta?.scheme_type ? 
+                        `Both funds are ${fund1Data.meta?.scheme_type} schemes` : 
+                        `${fund1Data.meta?.scheme_name || selectedFund1.name} is a ${fund1Data.meta?.scheme_type} scheme while ${fund2Data.meta?.scheme_name || selectedFund2.name} is a ${fund2Data.meta?.scheme_type} scheme`}. 
+                      Consider your investment goals, risk tolerance, and conduct further research before making investment decisions. This analysis is for informational purposes only and should not be considered as financial advice.
+                    </p>
+                  </div>
                 </div>
               )}
 

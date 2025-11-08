@@ -16,6 +16,7 @@ import {
   ComposedChart,
   Area,
 } from "recharts";
+import Navbar from "../../components/Navbar";
 
 // Utility functions
 function formatPct(val) {
@@ -127,6 +128,19 @@ export default function CryptoDetailsPage() {
   const [amount, setAmount] = useState(1000);
   const [selectedPeriod, setSelectedPeriod] = useState("1M");
 
+  // Compare cryptos state
+  const [crypto1Query, setCrypto1Query] = useState("");
+  const [crypto2Query, setCrypto2Query] = useState("");
+  const [crypto1Suggestions, setCrypto1Suggestions] = useState([]);
+  const [crypto2Suggestions, setCrypto2Suggestions] = useState([]);
+  const [showCrypto1Dropdown, setShowCrypto1Dropdown] = useState(false);
+  const [showCrypto2Dropdown, setShowCrypto2Dropdown] = useState(false);
+  const [selectedCrypto1, setSelectedCrypto1] = useState(null);
+  const [selectedCrypto2, setSelectedCrypto2] = useState(null);
+  const [crypto1Data, setCrypto1Data] = useState(null);
+  const [crypto2Data, setCrypto2Data] = useState(null);
+  const [showComparison, setShowComparison] = useState(false);
+
   useEffect(() => {
     setLoading(true);
     // TODO: Replace with actual API calls once your friend provides the endpoints
@@ -150,9 +164,93 @@ export default function CryptoDetailsPage() {
     });
   }, [symbol]);
 
+  // Debounced search for crypto 1
+  useEffect(() => {
+    if (crypto1Query.length < 1) {
+      setCrypto1Suggestions([]);
+      setShowCrypto1Dropdown(false);
+      return;
+    }
+    setShowCrypto1Dropdown(true);
+    const timeoutId = setTimeout(async () => {
+      try {
+        const response = await fetch(`/api/crypto/coins?search=${encodeURIComponent(crypto1Query)}`);
+        const data = await response.json();
+        setCrypto1Suggestions(data || []);
+      } catch (error) {
+        console.error('Error fetching crypto suggestions:', error);
+        setCrypto1Suggestions([]);
+      }
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
+  }, [crypto1Query]);
+
+  // Debounced search for crypto 2
+  useEffect(() => {
+    if (crypto2Query.length < 1) {
+      setCrypto2Suggestions([]);
+      setShowCrypto2Dropdown(false);
+      return;
+    }
+    setShowCrypto2Dropdown(true);
+    const timeoutId = setTimeout(async () => {
+      try {
+        const response = await fetch(`/api/crypto/coins?search=${encodeURIComponent(crypto2Query)}`);
+        const data = await response.json();
+        setCrypto2Suggestions(data || []);
+      } catch (error) {
+        console.error('Error fetching crypto suggestions:', error);
+        setCrypto2Suggestions([]);
+      }
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
+  }, [crypto2Query]);
+
+  // Fetch data for selected crypto 1
+  useEffect(() => {
+    if (!selectedCrypto1) return;
+    (async () => {
+      try {
+        const res = await fetch(`/api/crypto/coin-details/${selectedCrypto1.id}`);
+        const data = await res.json();
+        setCrypto1Data({ meta: data });
+      } catch (e) {
+        console.error(e);
+      }
+    })();
+  }, [selectedCrypto1]);
+
+  // Fetch data for selected crypto 2
+  useEffect(() => {
+    if (!selectedCrypto2) return;
+    (async () => {
+      try {
+        const res = await fetch(`/api/crypto/coin-details/${selectedCrypto2.id}`);
+        const data = await res.json();
+        setCrypto2Data({ meta: data });
+      } catch (e) {
+        console.error(e);
+      }
+    })();
+  }, [selectedCrypto2]);
+
   // Calculate future returns
   const estReturn = amount * Math.pow(1 + (riskVolatility.annualized_return || 0), 1);
   const estProfit = estReturn - amount;
+
+  // Handle crypto selection
+  const handleCrypto1Select = (crypto) => {
+    setSelectedCrypto1(crypto);
+    setCrypto1Query(crypto.name);
+    setShowCrypto1Dropdown(false);
+  };
+
+  const handleCrypto2Select = (crypto) => {
+    setSelectedCrypto2(crypto);
+    setCrypto2Query(crypto.name);
+  };
 
   return (
     <>
@@ -514,6 +612,183 @@ export default function CryptoDetailsPage() {
                 </div>
               </div>
             </div>
+
+            {/* Compare Cryptos Section - Full Width */}
+            <div className="mt-8 bg-[#181f31] rounded-xl p-8 shadow-lg">
+              <h3 className="text-2xl font-bold mb-6 text-white">Compare Cryptos</h3>
+              <div className="grid md:grid-cols-2 gap-6 mb-6">
+                {/* Crypto 1 Search */}
+                <div className="relative">
+                  <label className="block text-base mb-2 text-gray-300 font-medium">First Crypto</label>
+                  <input
+                    type="text"
+                    value={crypto1Query}
+                    onChange={(e) => {
+                      setCrypto1Query(e.target.value);
+                      setSelectedCrypto1(null);
+                    }}
+                    onFocus={() => crypto1Suggestions.length > 0 && setShowCrypto1Dropdown(true)}
+                    placeholder="Type to search (e.g., Bitcoin, Ethereum, Solana)..."
+                    className="w-full bg-[#232b44] text-white p-4 rounded-lg text-base focus:outline-none focus:ring-2 focus:ring-purple-500 placeholder-gray-400"
+                  />
+                  {showCrypto1Dropdown && (
+                    <div className="absolute z-10 w-full mt-2 bg-[#232b44] border border-gray-600 rounded-lg shadow-xl max-h-80 overflow-y-auto">
+                      {crypto1Suggestions.length > 0 ? (
+                        crypto1Suggestions.map((crypto) => (
+                          <div
+                            key={crypto.id}
+                            onClick={() => {
+                              setShowCrypto1Dropdown(false);
+                              handleCrypto1Select(crypto);
+                            }}
+                            className="p-4 hover:bg-purple-600 cursor-pointer transition-colors border-b border-gray-700 last:border-b-0"
+                          >
+                            <div className="text-white font-medium text-sm mb-1">{crypto.name}</div>
+                            <div className="text-gray-400 text-xs">Symbol: {crypto.symbol?.toUpperCase()}</div>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="p-4 text-gray-400 text-sm">No results found</div>
+                      )}
+                    </div>
+                  )}
+                  {selectedCrypto1 && (
+                    <div className="mt-2 p-3 bg-green-900/30 border border-green-600 rounded-lg">
+                      <div className="text-green-400 text-sm font-medium">✓ Selected: {selectedCrypto1.name}</div>
+                      <div className="text-gray-400 text-xs mt-1">Symbol: {selectedCrypto1.symbol?.toUpperCase()}</div>
+                    </div>
+                  )}
+                  <p className="text-xs text-gray-400 mt-2 italic">Type any letter to search</p>
+                </div>
+
+                {/* Crypto 2 Search */}
+                <div className="relative">
+                  <label className="block text-base mb-2 text-gray-300 font-medium">Second Crypto</label>
+                  <input
+                    type="text"
+                    value={crypto2Query}
+                    onChange={(e) => {
+                      setCrypto2Query(e.target.value);
+                      setSelectedCrypto2(null);
+                    }}
+                    onFocus={() => crypto2Suggestions.length > 0 && setShowCrypto2Dropdown(true)}
+                    placeholder="Type to search (e.g., Bitcoin, Ethereum, Solana)..."
+                    className="w-full bg-[#232b44] text-white p-4 rounded-lg text-base focus:outline-none focus:ring-2 focus:ring-purple-500 placeholder-gray-400"
+                  />
+                  {showCrypto2Dropdown && (
+                    <div className="absolute z-10 w-full mt-2 bg-[#232b44] border border-gray-600 rounded-lg shadow-xl max-h-80 overflow-y-auto">
+                      {crypto2Suggestions.length > 0 ? (
+                        crypto2Suggestions.map((crypto) => (
+                          <div
+                            key={crypto.id}
+                            onClick={() => handleCrypto2Select(crypto)}
+                            className="p-4 hover:bg-purple-600 cursor-pointer transition-colors border-b border-gray-700 last:border-b-0"
+                          >
+                            <div className="text-white font-medium text-sm mb-1">{crypto.name}</div>
+                            <div className="text-gray-400 text-xs">Symbol: {crypto.symbol?.toUpperCase()}</div>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="p-4 text-gray-400 text-sm">No results found</div>
+                      )}
+                    </div>
+                  )}
+                  {selectedCrypto2 && (
+                    <div className="mt-2 p-3 bg-green-900/30 border border-green-600 rounded-lg">
+                      <div className="text-green-400 text-sm font-medium">✓ Selected: {selectedCrypto2.name}</div>
+                      <div className="text-gray-400 text-xs mt-1">Symbol: {selectedCrypto2.symbol?.toUpperCase()}</div>
+                    </div>
+                  )}
+                  <p className="text-xs text-gray-400 mt-2 italic">Type any letter to search</p>
+                </div>
+              </div>
+
+              {/* Compare Button */}
+              {selectedCrypto1 && selectedCrypto2 && (
+                <div className="text-center">
+                  <button 
+                    onClick={() => setShowComparison(true)}
+                    className="bg-gradient-to-r from-purple-600 to-cyan-500 hover:from-purple-700 hover:to-cyan-600 text-white px-8 py-4 rounded-lg text-base font-bold transition-all transform hover:scale-105"
+                  >
+                    Compare
+                  </button>
+                  <p className="text-gray-400 text-sm mt-3">
+                    Click to generate comparison
+                  </p>
+                </div>
+              )}
+
+              {!selectedCrypto1 && !selectedCrypto2 && (
+                <p className="text-center text-gray-400 text-base">
+                  Search and select two cryptocurrencies to compare their performance metrics
+                </p>
+              )}
+            </div>
+
+            {showComparison && crypto1Data && crypto2Data && (
+              <div className="mt-8 bg-[#181f31] rounded-xl p-8 shadow-lg">
+                <h3 className="text-2xl font-bold mb-6 text-white">Crypto Comparison</h3>
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div className="bg-[#232b44] rounded-lg p-6">
+                    <h4 className="text-xl font-bold text-white mb-4">{crypto1Data.meta?.name || selectedCrypto1.name}</h4>
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-center text-base">
+                        <span className="font-medium text-gray-300">Symbol:</span>
+                        <span className="text-white font-semibold uppercase">{crypto1Data.meta?.symbol || selectedCrypto1.symbol}</span>
+                      </div>
+                      <div className="flex justify-between items-center text-base">
+                        <span className="font-medium text-gray-300">Current Price:</span>
+                        <span className="text-white font-semibold">{formatCurrency(crypto1Data.meta?.current_price)}</span>
+                      </div>
+                      <div className="flex justify-between items-center text-base">
+                        <span className="font-medium text-gray-300">Market Cap:</span>
+                        <span className="text-white font-semibold">{formatLargeCurrency(crypto1Data.meta?.market_cap)}</span>
+                      </div>
+                      <div className="flex justify-between items-center text-base">
+                        <span className="font-medium text-gray-300">Market Cap Rank:</span>
+                        <span className="text-white font-semibold">#{crypto1Data.meta?.market_cap_rank}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="bg-[#232b44] rounded-lg p-6">
+                    <h4 className="text-xl font-bold text-white mb-4">{crypto2Data.meta?.name || selectedCrypto2.name}</h4>
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-center text-base">
+                        <span className="font-medium text-gray-300">Symbol:</span>
+                        <span className="text-white font-semibold uppercase">{crypto2Data.meta?.symbol || selectedCrypto2.symbol}</span>
+                      </div>
+                      <div className="flex justify-between items-center text-base">
+                        <span className="font-medium text-gray-300">Current Price:</span>
+                        <span className="text-white font-semibold">{formatCurrency(crypto2Data.meta?.current_price)}</span>
+                      </div>
+                      <div className="flex justify-between items-center text-base">
+                        <span className="font-medium text-gray-300">Market Cap:</span>
+                        <span className="text-white font-semibold">{formatLargeCurrency(crypto2Data.meta?.market_cap)}</span>
+                      </div>
+                      <div className="flex justify-between items-center text-base">
+                        <span className="font-medium text-gray-300">Market Cap Rank:</span>
+                        <span className="text-white font-semibold">#{crypto2Data.meta?.market_cap_rank}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-6 p-6 bg-[#232b44] rounded-lg">
+                  <h4 className="text-xl font-bold text-white mb-4">AI Comparison Analysis</h4>
+                  <p className="text-gray-300 text-base leading-relaxed">
+                    Based on the comparison between {crypto1Data.meta?.name || selectedCrypto1.name} and {crypto2Data.meta?.name || selectedCrypto2.name}, 
+                    {crypto1Data.meta?.market_cap > crypto2Data.meta?.market_cap ? 
+                      `${crypto1Data.meta?.name || selectedCrypto1.name} has a higher market capitalization (${formatLargeCurrency(crypto1Data.meta?.market_cap)}) compared to ${crypto2Data.meta?.name || selectedCrypto2.name} (${formatLargeCurrency(crypto2Data.meta?.market_cap)}). ` : 
+                      `${crypto2Data.meta?.name || selectedCrypto2.name} has a higher market capitalization (${formatLargeCurrency(crypto2Data.meta?.market_cap)}) compared to ${crypto1Data.meta?.name || selectedCrypto1.name} (${formatLargeCurrency(crypto1Data.meta?.market_cap)}). `
+                    }
+                    {crypto1Data.meta?.current_price > crypto2Data.meta?.current_price ? 
+                      `${crypto1Data.meta?.name || selectedCrypto1.name} is currently trading at a higher price (${formatCurrency(crypto1Data.meta?.current_price)}) than ${crypto2Data.meta?.name || selectedCrypto2.name} (${formatCurrency(crypto2Data.meta?.current_price)}). ` : 
+                      `${crypto2Data.meta?.name || selectedCrypto2.name} is currently trading at a higher price (${formatCurrency(crypto2Data.meta?.current_price)}) than ${crypto1Data.meta?.name || selectedCrypto1.name} (${formatCurrency(crypto1Data.meta?.current_price)}). `
+                    }
+                    Consider your investment goals, risk tolerance, and conduct further research before making investment decisions. Cryptocurrency investments are highly volatile and should not be considered as financial advice.
+                  </p>
+                </div>
+              </div>
+            )}
           </>
         )}
       </div>

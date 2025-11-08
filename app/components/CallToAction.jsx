@@ -1,5 +1,5 @@
 "use client";
-import { SignedIn, SignedOut, SignUpButton } from "@clerk/nextjs";
+import useUser, { loginHref } from "@/lib/authClient";
 import starsBg from "@/assets/stars.png";
 import gridLines from "@/assets/grid-lines.png";
 import { motion, useMotionTemplate, useMotionValue, useScroll, useTransform } from "framer-motion";
@@ -93,29 +93,21 @@ export const CallToAction = () => {
 </p>
 
 
-         <div>
-          <SignedOut>
-            <SignUpButton mode="redirect">
-              <button className="inline-flex items-center gap-3 bg-gradient-to-r from-[#9b5cff] to-[#f08bd6] text-white font-semibold px-6 py-3 rounded-full shadow-lg hover:scale-[1.02] transition-transform">
+        <div>
+          {(() => {
+            const { isSignedIn } = useUser();
+            return isSignedIn ? (
+              <Link href="/Portfolio" className="inline-flex items-center gap-3 bg-gradient-to-r from-[#9b5cff] to-[#f08bd6] text-white font-semibold px-6 py-3 rounded-full shadow-lg hover:scale-[1.02] transition-transform">
                 Get Started
-                <span className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center">
-                  →
-                </span>
-              </button>
-            </SignUpButton>
-          </SignedOut>
-
-          <SignedIn>
-            <Link
-              href="/Portfolio"
-              className="inline-flex items-center gap-3 bg-gradient-to-r from-[#9b5cff] to-[#f08bd6] text-white font-semibold px-6 py-3 rounded-full shadow-lg hover:scale-[1.02] transition-transform"
-            >
-              Get Started
-              <span className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center">
-                →
-              </span>
-            </Link>
-          </SignedIn>
+                <span className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center">→</span>
+              </Link>
+            ) : (
+              <a href={`${loginHref}?screen_hint=signup`} className="inline-flex items-center gap-3 bg-gradient-to-r from-[#9b5cff] to-[#f08bd6] text-white font-semibold px-6 py-3 rounded-full shadow-lg hover:scale-[1.02] transition-transform">
+                Get Started
+                <span className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center">→</span>
+              </a>
+            );
+          })()}
         </div>
       </div>
     </motion.div>
